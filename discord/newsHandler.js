@@ -98,9 +98,6 @@ export function startNewsHandler(discordClient) {
     //         }
     //     }
     // }, 10 * 60 * 1000)// run once every hour
-    setInterval(() => {
-
-    })
 }
 
 

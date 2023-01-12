@@ -1,13 +1,27 @@
-import Discord, {IntentsBitField} from "discord.js";
+import Discord, {Events, IntentsBitField} from "discord.js";
 import updateCommands from "./commandHandler.js"
 import {startNewsHandler} from "./newsHandler.js";
 
-const client = new Discord.Client({intents: [IntentsBitField.Flags.GuildMembers, IntentsBitField.Flags.GuildPresences]});
+export function initBot() {
+    const client = new Discord.Client({intents: [IntentsBitField.Flags.Guilds]});
+    client.on(Events.ClientReady, () => {
+        console.log(`Logged in as ${client.user.tag}!`);
+        startNewsHandler(client)
+    });
 
-client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
-    // updateCommands(client)
-    startNewsHandler(client)
-});
+    client.on(Events.GuildCreate, guild => {
+        // bot joined a build <3
+        console.log("just joined:")
+        console.log(guild)
+        // add command to new guild
+        updateCommands(client, guild)
+    })
 
-client.login(process.env.discord_token).then();
+    client.on(Events.GuildDelete, guild => {
+        // bot left a build
+    })
+
+    // client.on(Events.)
+
+    client.login(process.env.discord_token).then();
+}

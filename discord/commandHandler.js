@@ -19,7 +19,7 @@ for (const rawCommand of discordCommands) {
     }
 }
 
-export default async function updateCommands(client) {
+export default async function updateCommands(client, guild) {
     const rest = new REST({version: '10'}).setToken(process.env.discord_token);
 
     try {
@@ -27,7 +27,7 @@ export default async function updateCommands(client) {
 
         // The put method is used to fully refresh all commands in the guild with the current set
         const data = await rest.put(
-            Routes.applicationGuildCommands("802892163900768277", "394105661652205568" /*guild id*/),
+            Routes.applicationGuildCommands(process.env.discord_application_id, guild.id),
             {body: restCommands},
         );
 

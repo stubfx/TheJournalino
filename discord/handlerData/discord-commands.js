@@ -1,4 +1,12 @@
-import {Client, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, ChatInputCommandInteraction} from "discord.js";
+import {
+    Client,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    SlashCommandBuilder,
+    ChatInputCommandInteraction,
+    PermissionsBitField
+} from "discord.js";
 
 /**
  *
@@ -7,8 +15,8 @@ import {Client, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilde
 const commands = [{
     data: new SlashCommandBuilder()
         .setName('news')
-        .setDescription("Toggle news permission")
-        .setDefaultMemberPermissions(0),
+        .setDescription("Toggle news permission"),
+        // .setDefaultMemberPermissions(PermissionsBitField.Default),
     async execute(client, interaction) {
         const noNewsRole = "1050057029210878002"
         const member = interaction.member;
@@ -24,7 +32,8 @@ const commands = [{
 }, {
     data: new SlashCommandBuilder()
         .setName('nukeserver')
-        .setDescription("Don't do it pls."),
+        .setDescription("Don't do it pls.")
+        .setsu,
     async execute(client, interaction) {
         const row = new ActionRowBuilder()
             .addComponents(
