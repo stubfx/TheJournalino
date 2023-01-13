@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
 import Discord, {EmbedBuilder} from "discord.js";
-import discordNews from "./handlerData/discord-news.js";
+import * as newsGuildHandler from "./handlerData/discord-news.js";
 
 let client = null
 
@@ -27,7 +27,8 @@ function rndArrayItem(arr) {
 
 function getRandomGoogleNewsFeedUrl(newsData) {
     const prefix = "https://news.google.com/rss/search?q=";
-    const postfix = '&hl=en-US&gl=US&ceid=US:en'
+    // const postfix = '&hl=en-US&gl=US&ceid=US:en'
+    const postfix = `&hl=${language}`
     let feedUrl = prefix + rndArrayItem(newsData.queries) + postfix;
     console.log(`RSS FEED: ${feedUrl}`);
     return feedUrl
@@ -98,6 +99,10 @@ export function startNewsHandler(discordClient) {
     //         }
     //     }
     // }, 10 * 60 * 1000)// run once every hour
+    // setInterval(() => {
+    //     let allGuilds = newsGuildHandler.allGuilds();
+    //     console.log(allGuilds.length)
+    // }, 2000)
 }
 
 
