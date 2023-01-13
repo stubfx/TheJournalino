@@ -54,6 +54,7 @@ export async function addNewsGuild(guild, channelId, topic, language) {
 }
 
 export async function removeNewsChannel(channel) {
+    let found = false
     let newsGuilds = db.data.guilds
     let currentNewsGuild = newsGuilds[channel.guild.id];
     if (currentNewsGuild) {
@@ -61,9 +62,11 @@ export async function removeNewsChannel(channel) {
             let topic = currentNewsGuild.topics[topicsKey]
             if (topic.channelId === channel.id) {
                 delete currentNewsGuild.topics[topicsKey]
+                found = true
             }
         }
         delete currentNewsGuild.topics[channel.id]
     }
     await db.write()
+    return found
 }
