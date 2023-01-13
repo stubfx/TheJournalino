@@ -61,31 +61,35 @@ async function findMetaEmbeds(article) {
  * @param {NewsData}newsData
  */
 function fetchGoogleNews(newsData) {
-    const randomGoogleNewsFeedUrl = getRandomGoogleNewsFeedUrl(newsData);
-    let cachedNewsArticle = dbAdapter.getCachedNewsArticle(randomGoogleNewsFeedUrl);
-    if (cachedNewsArticle) {
-        sendNews(newsData.channelId, cachedNewsArticle)
-        return
-    }
-    fetch(randomGoogleNewsFeedUrl)
-        .then(value => value.text())
-        .then(value => JSON.parse(xmlParser.toJson(value, null))['rss']['channel']['item'])
-        .then(async news => {
-            let articleMetaData = undefined
-            do {
-                articleMetaData = await findMetaEmbeds(rndArrayItem(news));
-                articleMetaData.googleRSSFEED = randomGoogleNewsFeedUrl
-                console.log(`looking for article for - ${randomGoogleNewsFeedUrl}`)
-            } while (!articleMetaData.isComplete())
-            dbAdapter.cacheNewsArticle(randomGoogleNewsFeedUrl, articleMetaData)
-            sendNews(newsData.channelId, articleMetaData)
-        });
+    return new Promise(resolve => {
+        const randomGoogleNewsFeedUrl = getRandomGoogleNewsFeedUrl(newsData);
+        let cachedNewsArticle = dbAdapter.getCachedNewsArticle(randomGoogleNewsFeedUrl);
+        if (cachedNewsArticle) {
+            sendNews(newsData.channelId, cachedNewsArticle)
+            resolve()
+            return
+        }
+        fetch(randomGoogleNewsFeedUrl)
+            .then(value => value.text())
+            .then(value => JSON.parse(xmlParser.toJson(value, null))['rss']['channel']['item'])
+            .then(async news => {
+                let articleMetaData = undefined
+                do {
+                    articleMetaData = await findMetaEmbeds(rndArrayItem(news));
+                    articleMetaData.googleRSSFEED = randomGoogleNewsFeedUrl
+                    console.log(`looking for article for - ${randomGoogleNewsFeedUrl}`)
+                } while (!articleMetaData.isComplete())
+                dbAdapter.cacheNewsArticle(randomGoogleNewsFeedUrl, articleMetaData)
+                sendNews(newsData.channelId, articleMetaData)
+                resolve()
+            });
+    })
 }
 
 export function startNewsHandler(discordClient) {
     client = discordClient
     let lastSentHour = null
-    setInterval(() => {
+    setInterval(async () => {
         // let hour = new Date().getHours()
         // if (lastSentHour === hour) {
         //     // already sent the news for this hour.
@@ -99,7 +103,7 @@ export function startNewsHandler(discordClient) {
             let currentGuild = allGuilds[allGuildsKey]
             for (let topicsKey in currentGuild.topics) {
                 let topic = currentGuild.topics[topicsKey];
-                fetchGoogleNews({
+                await fetchGoogleNews({
                     topic: topicsKey,
                     language: topic.language,
                     hourInterval: 1,
