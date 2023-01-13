@@ -1,7 +1,7 @@
 import Discord, {Events, IntentsBitField} from "discord.js";
 import updateCommands from "./commandHandler.js"
 import {startNewsHandler} from "./newsHandler.js";
-import {removeNewsChannel} from "./handlerData/discord-news.js";
+import * as dbAdapter from "./db/dbAdapter.js";
 
 export function initBot() {
     const client = new Discord.Client({intents: [IntentsBitField.Flags.Guilds]});
@@ -13,18 +13,17 @@ export function initBot() {
 
     client.on(Events.GuildCreate, guild => {
         // bot joined a build <3
-        console.log("just joined:")
-        console.log(guild)
+        console.log(`just joined: ${guild.id} ${guild.name}`)
     })
 
-    client.on(Events.GuildDelete, guild => {
+    client.on(Events.GuildDelete, async guild => {
         // bot left a build
-        console.log("just left:")
-        console.log(guild)
+        console.log(`just left: ${guild.id} ${guild.name}`)
+        await dbAdapter.removeGuild(guild)
     })
 
-    client.on(Events.ChannelDelete, channel => {
-        removeNewsChannel(channel)
+    client.on(Events.ChannelDelete, async channel => {
+        await dbAdapter.removeNewsChannel(channel)
     })
 
     // client.on(Events.)

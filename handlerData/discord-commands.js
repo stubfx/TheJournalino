@@ -5,7 +5,7 @@ import {
 } from "discord.js";
 
 import locales from '../datamodels/locales.js'
-import {addNewsGuild, removeNewsChannel} from "./discord-news.js";
+import * as dbAdapter from "../db/dbAdapter.js";
 
 const languages = locales
 
@@ -51,10 +51,10 @@ const commands = [{
             let language = interaction.options.get('language');
             let topic = interaction.options.get('topic');
             // add this channel to the news queue!
-            await addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
+            await dbAdapter.addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
             await interaction.reply({content: `News will be here soon!`, ephemeral: true});
         } else if (subcommand === "remove") {
-            let removed = await removeNewsChannel(interaction.channel);
+            let removed = await dbAdapter.removeNewsChannel(interaction.channel);
             if (removed) {
                 await interaction.reply({content: `You wont receive free news in this channel anymore.`, ephemeral: true});
             } else {

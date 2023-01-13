@@ -2,7 +2,9 @@ import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
 import Discord, {EmbedBuilder} from "discord.js";
-import * as newsGuildHandler from "./handlerData/discord-news.js";
+import * as dbAdapter from "./db/dbAdapter.js";
+import {rndArrayItem} from "./utils.js";
+import {clearNewsArticleCache, getRndTopicQuery} from "./db/dbAdapter.js";
 
 let client = null
 
@@ -21,15 +23,16 @@ class ArticleMetadata {
     }
 }
 
-function rndArrayItem(arr) {
-    return arr[Math.floor(Math.random() * arr.length)]
-}
-
+/**
+ *
+ * @param {NewsData}newsData
+ * @return {string}
+ */
 function getRandomGoogleNewsFeedUrl(newsData) {
     const prefix = "https://news.google.com/rss/search?q=";
     // const postfix = '&hl=en-US&gl=US&ceid=US:en'
-    const postfix = `&hl=${language}`
-    let feedUrl = prefix + rndArrayItem(newsData.queries) + postfix;
+    const postfix = `&hl=${newsData.language}`
+    let feedUrl = prefix + dbAdapter.getRndTopicQuery(newsData.topic) + postfix;
     console.log(`RSS FEED: ${feedUrl}`);
     return feedUrl
 }
@@ -53,56 +56,58 @@ async function findMetaEmbeds(article) {
     })
 }
 
-async function onNewsFeedReceived(news, randomGoogleNewsFeedUrl, newsData) {
-    let articleMetaData = await findMetaEmbeds(rndArrayItem(news));
-    articleMetaData.googleRSSFEED = randomGoogleNewsFeedUrl
-    // is the article complete? or should we look for another one?
-    if (articleMetaData.isComplete()) {
-        sendNews(newsData, articleMetaData)
-    } else {
-        console.error(`This article is not complete ${articleMetaData.url}`)
-        console.error(`I'll try again!`)
-        await onNewsFeedReceived(news, randomGoogleNewsFeedUrl, newsData)
-    }
-}
-
 /**
  *
  * @param {NewsData}newsData
  */
 function fetchGoogleNews(newsData) {
     const randomGoogleNewsFeedUrl = getRandomGoogleNewsFeedUrl(newsData);
+    let cachedNewsArticle = dbAdapter.getCachedNewsArticle(randomGoogleNewsFeedUrl);
+    if (cachedNewsArticle) {
+        sendNews(newsData.channelId, cachedNewsArticle)
+        return
+    }
     fetch(randomGoogleNewsFeedUrl)
         .then(value => value.text())
         .then(value => JSON.parse(xmlParser.toJson(value, null))['rss']['channel']['item'])
         .then(async news => {
-            await onNewsFeedReceived(news, randomGoogleNewsFeedUrl, newsData);
+            let articleMetaData = undefined
+            do {
+                articleMetaData = await findMetaEmbeds(rndArrayItem(news));
+                articleMetaData.googleRSSFEED = randomGoogleNewsFeedUrl
+                console.log(`looking for article for - ${randomGoogleNewsFeedUrl}`)
+            } while (!articleMetaData.isComplete())
+            dbAdapter.cacheNewsArticle(randomGoogleNewsFeedUrl, articleMetaData)
+            sendNews(newsData.channelId, articleMetaData)
         });
 }
 
 export function startNewsHandler(discordClient) {
-    // client = discordClient
-    // let lastSentHour = null
-    // setInterval(() => {
-    //     let hour = new Date().getHours()
-    //     if (lastSentHour === hour) {
-    //         // already sent the news for this hour.
-    //         return
-    //     }
-    //     lastSentHour = hour
-    //     for (let newsData of discordNews) {
-    //         for (let number of newsData.hourOfDay) {
-    //             if (number === hour) {
-    //                 // we should send this article.
-    //                 fetchGoogleNews(newsData)
-    //             }
-    //         }
-    //     }
-    // }, 10 * 60 * 1000)// run once every hour
-    // setInterval(() => {
-    //     let allGuilds = newsGuildHandler.allGuilds();
-    //     console.log(allGuilds.length)
-    // }, 2000)
+    client = discordClient
+    let lastSentHour = null
+    setInterval(() => {
+        // let hour = new Date().getHours()
+        // if (lastSentHour === hour) {
+        //     // already sent the news for this hour.
+        //     return
+        // }
+        // lastSentHour = hour
+        let allGuilds = dbAdapter.getAllGuilds();
+        // reset cache for the next news cycle.
+        dbAdapter.clearNewsArticleCache();
+        for (let allGuildsKey in allGuilds) {
+            let currentGuild = allGuilds[allGuildsKey]
+            for (let topicsKey in currentGuild.topics) {
+                let topic = currentGuild.topics[topicsKey];
+                fetchGoogleNews({
+                    topic: topicsKey,
+                    language: topic.language,
+                    hourInterval: 1,
+                    channelId: topic.channelId
+                })
+            }
+        }
+    }, 10000)// run once every hour
 }
 
 
@@ -117,11 +122,11 @@ export function startNewsHandler(discordClient) {
 // }
 /**
  *
- * @param {NewsData}newsData
+ * @param {string}channelId
  * FIXME docs.
  * @param {any}articleMeta
  */
-function sendNews(newsData, articleMeta) {
+function sendNews(channelId, articleMeta) {
     if (process.env.dev) {
         console.log(`DEV SIM: sending article "${articleMeta.title}"`)
         return
@@ -152,7 +157,7 @@ function sendNews(newsData, articleMeta) {
             // url: article.source.url
         })
     }
-    client.channels.fetch(newsData.channelID)
+    client.channels.fetch(channelId)
         .then(async channel => {
             if (channel instanceof Discord.NewsChannel) {
                 await (await channel.send({embeds: [exampleEmbed]})).crosspost()

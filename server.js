@@ -1,3 +1,3 @@
-import * as discordBot from "./discord/discordbot.js";
+import * as discordBot from "./discordbot.js";
 
 discordBot.initBot()

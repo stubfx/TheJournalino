@@ -5,7 +5,8 @@ export default {
         "Overwatch+2",
         "Rainbow+six+siege",
         "Valve+Steam+games",
-        "Warzone+2"
+        "Warzone+2",
+        "Videogames"
     ],
     "tech": [
         "tech+news",
