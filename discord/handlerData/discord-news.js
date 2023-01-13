@@ -25,63 +25,12 @@ import db from '../../lowdb.js'
 /**
  * @typedef NewsGuildTopic
  * @property {string}guildId
- * @property {string : newsTopic}topics
+ * @property {string : NewsTopic}topics
  */
 
 /**
  *
- * @type {Array<NewsData>}
- */
-// const newsGuilds = []
-// {
-//     name: "Gaming",
-//     channelID: "760191387433304086",
-//     queries: [
-//         "SeaOfThieves",
-//         "Overwatch+2",
-//         "Rainbow+six+siege",
-//         "Valve+Steam+games",
-//         "Warzone+2"
-//     ],
-//     hourOfDay: [10, 15, 20]
-// },
-// {
-//     name: "Tech",
-//     channelID: "1050107246509572228",
-//     queries: [
-//         "tech+news",
-//         "Intel+chip",
-//         "AMD+chip",
-//         "Nvidia+GPU",
-//         "Nvidia+AI"
-//     ],
-//     hourOfDay: [10, 15, 20]
-// },
-// {
-//     name: "Stocks",
-//     channelID: "1050107294437883966",
-//     queries: [
-//         "Google+Market+Stocks",
-//         "Intel+Market+Stocks",
-//         "AMD+chip+Market+Stocks",
-//         "Nvidia+Market+Stocks",
-//         "Nvidia+Market+Stocks"
-//     ],
-//     hourOfDay: [10, 20]
-// },
-// {
-//     name: "TopNews",
-//     channelID: "1050314737923149894",
-//     queries: [
-//         "top+news"
-//     ],
-//     hourOfDay: [9, 14]
-// }
-// export default newsGuilds;
-
-/**
- *
- * @return {Array<NewsData>}
+ * @return {Array<NewsGuild>}
  */
 export function allGuilds() {
     return db.data.guilds
@@ -104,10 +53,17 @@ export async function addNewsGuild(guild, channelId, topic, language) {
     await db.write()
 }
 
-export function removeNewsChannel(channel) {
+export async function removeNewsChannel(channel) {
     let newsGuilds = db.data.guilds
-    let currentNewsGuild = newsGuilds.find(value => value.guildId === channel.guild.id);
+    let currentNewsGuild = newsGuilds[channel.guild.id];
     if (currentNewsGuild) {
+        for (let topicsKey in currentNewsGuild.topics) {
+            let topic = currentNewsGuild.topics[topicsKey]
+            if (topic.channelId === channel.id) {
+                delete currentNewsGuild.topics[topicsKey]
+            }
+        }
         delete currentNewsGuild.topics[channel.id]
     }
+    await db.write()
 }
