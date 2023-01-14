@@ -28,5 +28,7 @@ export function initBot() {
 
     // client.on(Events.)
 
-    client.login(process.env.discord_token).then();
+    client.login(process.env.discord_token).catch(reason => {
+        console.log(reason)
+    });
 }
