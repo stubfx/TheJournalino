@@ -52,9 +52,8 @@ const commands = [{
             let sendPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.SendMessages);
             if (viewChannelPermission && sendPermission) {
                 // add this channel to the news queue!
-                console.log(topic)
                 await dbAdapter.addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
-                await interaction.reply({content: `Aight ${interaction.user.username}, ${topic.name} news will be here soon!`, ephemeral: false});
+                await interaction.reply({content: `Aight ${interaction.user.username}, ${topic.value} news will be here soon!`, ephemeral: false});
             } else {
                 // no permissions in this channel, pls try again.
                 await interaction.reply({content: `I have no permissions to send messages in this channel!`, ephemeral: true});
