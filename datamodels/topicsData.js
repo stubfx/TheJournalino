@@ -21,5 +21,19 @@ export default {
         "AMD+chip+Market+Stocks",
         "Nvidia+Market+Stocks",
         "Nvidia+Market+Stocks"
+    ],
+    "crypto": [
+        "cryptocurrencies",
+        "crypto+currencies",
+        "Bitcoin",
+        "new+crypto+asset"
+    ],
+    "anime&manga": [
+        "anime+magazine",
+        "new+anime",
+        "popular+anime",
+        "manga+magazine",
+        "new+manga",
+        "popular+manga",
     ]
 }
