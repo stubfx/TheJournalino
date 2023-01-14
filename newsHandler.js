@@ -155,14 +155,7 @@ function sendNews(channelId, articleMeta) {
     }
     client.channels.fetch(channelId)
         .then(async channel => {
-            if (channel instanceof Discord.NewsChannel) {
-                await (await channel.send({embeds: [exampleEmbed]})).crosspost()
-            }
-            if (channel instanceof Discord.TextChannel) {
-                // channel is type of TextChannel
-                // channel.send(links[0])
-                await channel.send({embeds: [exampleEmbed]});
-            }
+            await channel.send({embeds: [exampleEmbed]});
         })
         .catch(console.error);
 }
