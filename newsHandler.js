@@ -4,7 +4,6 @@ import xmlParser from "xml2json";
 import Discord, {EmbedBuilder} from "discord.js";
 import * as dbAdapter from "./db/dbAdapter.js";
 import {rndArrayItem} from "./utils.js";
-import {clearNewsArticleCache, getRndTopicQuery} from "./db/dbAdapter.js";
 
 let client = null
 
@@ -88,14 +87,7 @@ function fetchGoogleNews(newsData) {
 
 export function startNewsHandler(discordClient) {
     client = discordClient
-    let lastSentHour = null
     setInterval(async () => {
-        // let hour = new Date().getHours()
-        // if (lastSentHour === hour) {
-        //     // already sent the news for this hour.
-        //     return
-        // }
-        // lastSentHour = hour
         let allGuilds = dbAdapter.getAllGuilds();
         // reset cache for the next news cycle.
         dbAdapter.clearNewsArticleCache();
@@ -111,7 +103,7 @@ export function startNewsHandler(discordClient) {
                 })
             }
         }
-    }, 10000)// run once every hour
+    }, 3 * 60 * 60 * 1000)// run once every 3 hour
 }
 
 
