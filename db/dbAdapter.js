@@ -1,4 +1,4 @@
-import guildsDB from "./lowdb.js";
+import guildsDB from "../lowdb.js";
 import topicsData from "../datamodels/topicsData.js";
 import {rndArrayItem} from "../utils.js";
 
