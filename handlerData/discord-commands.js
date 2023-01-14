@@ -1,8 +1,4 @@
-import {
-    Client,
-    SlashCommandBuilder,
-    ChatInputCommandInteraction, PermissionsBitField,
-} from "discord.js";
+import {ChatInputCommandInteraction, Client, PermissionFlagsBits, SlashCommandBuilder,} from "discord.js";
 
 import locales from '../datamodels/locales.js'
 import * as dbAdapter from "../db/dbAdapter.js";
@@ -17,7 +13,8 @@ const commands = [{
     data: new SlashCommandBuilder()
         .setName('news')
         .setDescription("News setup command")
-        .setDefaultMemberPermissions(PermissionsBitField.Default)
+        // server admin should handle this instead.
+        // .setDefaultMemberPermissions(PermissionsBitField.Default)
         .addSubcommand(subcommandGroup => subcommandGroup
             .setName("add")
             .setDescription("Add an free news job to this channel")
@@ -49,9 +46,19 @@ const commands = [{
         if (subcommand === "add") {
             let language = interaction.options.get('language');
             let topic = interaction.options.get('topic');
-            // add this channel to the news queue!
-            await dbAdapter.addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
-            await interaction.reply({content: `News will be here soon!`, ephemeral: true});
+            // check if the bot has permissions to write in the channel.
+            let me = interaction.guild.members.me;
+            let viewChannelPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.ViewChannel);
+            let sendPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.SendMessages);
+            if (viewChannelPermission && sendPermission) {
+                // add this channel to the news queue!
+                console.log(topic)
+                await dbAdapter.addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
+                await interaction.reply({content: `Aight ${interaction.user.username}, ${topic.name} news will be here soon!`, ephemeral: false});
+            } else {
+                // no permissions in this channel, pls try again.
+                await interaction.reply({content: `I have no permissions to send messages in this channel!`, ephemeral: true});
+            }
         } else if (subcommand === "remove") {
             let removed = await dbAdapter.removeNewsChannel(interaction.channel);
             if (removed) {
