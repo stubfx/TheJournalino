@@ -46,7 +46,6 @@ const commands = [{
     async execute(client, interaction) {
         let guild = interaction.guild;
         let subcommand = interaction.options.getSubcommand();
-        console.log(subcommand)
         if (subcommand === "add") {
             let language = interaction.options.get('language');
             let topic = interaction.options.get('topic');
