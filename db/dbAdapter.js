@@ -91,5 +91,5 @@ export function getRndTopicQuery(topic) {
     if (!topicData) {
         topicData = topicsData['top']
     }
-    return rndArrayItem(topicData)
+    return rndArrayItem(topicData.queries)
 }

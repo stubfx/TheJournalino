@@ -2,6 +2,19 @@ import {ChatInputCommandInteraction, Client, PermissionFlagsBits, SlashCommandBu
 
 import locales from '../datamodels/locales.js'
 import * as dbAdapter from "../db/dbAdapter.js";
+import topicsData from "../datamodels/topicsData.js";
+
+function getTopicDataAsCommandChoices() {
+    let tmp = []
+    for (let topicsDataKey in topicsData) {
+        tmp.push({name: topicsData[topicsDataKey].name, value: topicsDataKey})
+    }
+    return tmp;
+    // return [{name: 'Top News', value: 'top'},
+    //     {name: 'Gaming', value: 'gaming'},
+    //     {name: 'Tech', value: 'tech'},
+    //     {name: 'Stocks', value: 'stocks'}]
+}
 
 const languages = locales
 
@@ -21,12 +34,7 @@ const commands = [{
             .addStringOption(builder => builder
                 .setName("topic")
                 .setDescription("The topic you want the news for")
-                .addChoices(
-                    {name: 'Top News', value: 'top'},
-                    {name: 'Gaming', value: 'gaming'},
-                    {name: 'Tech', value: 'tech'},
-                    {name: 'Stocks', value: 'stocks'},
-                )
+                .addChoices(...getTopicDataAsCommandChoices())
                 .setRequired(true)
             )
             .addStringOption(builder => builder
