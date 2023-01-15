@@ -1,6 +1,7 @@
 import guildsDB from "../lowdb.js";
 import topicsData from "../datamodels/topicsData.js";
 import {rndArrayItem} from "../utils.js";
+import {findMetaEmbeds} from "../newsHandler.js";
 
 /**
  * @typedef NewsTopic
@@ -27,6 +28,10 @@ import {rndArrayItem} from "../utils.js";
  * @typedef NewsGuildTopic
  * @property {string}guildId
  * @property {string : NewsTopic}topics
+ */
+
+/**
+ * @typedef RawGoogleArticle
  */
 
 export function getAllGuilds() {
@@ -73,23 +78,99 @@ export async function addNewsGuild(guild, channelId, topic, language) {
     await guildsDB.write()
 }
 
-let newsDB = {};
-export function getCachedNewsArticle(queryString) {
-    return newsDB[queryString]
+let newsCache = {};
+let topicsCache = {};
+/**
+ * holds current articles for this news batch
+ * so each server that has the same combo (topic+language) will receive the same one.
+ */
+let currentArticlesCache = {}
+
+export function prepareForNewBatch() {
+    // clearTopicsCache()
+    clearCurrentArticlesCache()
 }
 
-export function clearNewsArticleCache() {
-    newsDB = {}
+export function clearTopicsCache() {
+    topicsCache = {}
 }
 
-export function cacheNewsArticle(queryString, article) {
-    newsDB[queryString] = article
+export function clearNewsCache() {
+    newsCache = {}
 }
 
-export function getRndTopicQuery(topic) {
+export function clearCurrentArticlesCache() {
+    currentArticlesCache = {}
+}
+
+/**
+ *
+ * @param queryString
+ * @return {Promise<ArticleMetadata|null>}
+ */
+export async function getCurrentArticle(queryString) {
+    // does the current one exist?
+    if (!currentArticlesCache[queryString]) {
+        // in this the article is not in the cache yet!
+        // let's get it
+        currentArticlesCache[queryString] = await getCachedStackNewsSanitizedArticle(queryString)
+    }
+    // then just return it.
+    return currentArticlesCache[queryString]
+}
+
+/**
+ * WARNING, THIS FUNCTION IS QUITE HEAVY SOMETIMES.
+ * When looking for the article in the cache stack it verifies it fetching its domain,
+ * returns the fetched article only if its "complete" (has enough info for the meta article),
+ * if not removes that from the cache and proceeds with the next one.
+ * returns the first cached article, null if none is cached for the given querystring.
+ * @param queryString
+ * @return {Promise<ArticleMetadata|null>}
+ */
+async function getCachedStackNewsSanitizedArticle(queryString) {
+    /**
+     * @type Array<RawGoogleArticle>
+     */
+    let newsDBArray = newsCache[queryString];
+    let article = undefined
+    while (newsDBArray && newsDBArray.length) {
+        console.log(`${newsDBArray.length} currently cached items for ${queryString}`)
+        article = newsDBArray.shift();
+        article = await findMetaEmbeds(article)
+        if (article.isComplete()) {
+            return article
+        }
+    }
+    // in this case no complete article has been found :/
+    return null
+}
+
+/**
+ *
+ * @param {string}queryString
+ * @param {Array<RawGoogleArticle>}rawArticles
+ */
+export function cacheRawArticles(queryString, rawArticles) {
+    newsCache[queryString] = rawArticles
+}
+
+export function getCurrentTopicQuery(topic) {
     let topicData = topicsData[topic];
+    // this should never happen, but do it just in case.
+    // if we see the error it means that somebody has found a way to sneak custom topics inside the command.
     if (!topicData) {
+        console.error(`Topic Error: ${topic} --- This topic does not exist!`)
         topicData = topicsData['top']
     }
-    return rndArrayItem(topicData.queries)
+    // check in the cache!
+    if (topicsCache[topic]) {
+        // console.log(`Topic cache: ${topicsCache[topic]} found topic in cache`)
+        return topicsCache[topic]
+    } else {
+        // well, looks like we need a new one!
+        let rndQuery = rndArrayItem(topicData.queries);
+        topicsCache[topic] = rndQuery
+        return rndQuery
+    }
 }

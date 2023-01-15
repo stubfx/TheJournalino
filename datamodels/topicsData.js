@@ -61,11 +61,11 @@ export default {
     "r6s": {
         name: 'Rainbow six Siege',
         queries: [
-            "Rainbow+six+siege+operator",
+            // "Rainbow+six+siege+operator",
             "Rainbow+six+siege+map",
-            "Rainbow+six+siege+strats",
-            "Rainbow+six+siege+tournament",
-            "Rainbow+six+siege+official"
+            // "Rainbow+six+siege+strats",
+            // "Rainbow+six+siege+tournament",
+            // "Rainbow+six+siege+official"
         ]
     }
 }
