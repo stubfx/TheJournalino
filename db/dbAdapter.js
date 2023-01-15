@@ -87,7 +87,7 @@ let topicsCache = {};
 let currentArticlesCache = {}
 
 export function prepareForNewBatch() {
-    // clearTopicsCache()
+    clearTopicsCache()
     clearCurrentArticlesCache()
 }
 
