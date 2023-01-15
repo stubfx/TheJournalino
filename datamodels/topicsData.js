@@ -29,7 +29,7 @@ export default {
         ]
     },
     "stocks": {
-        name: 'Ttocks',
+        name: 'Stocks',
         queries: [
             "Google+Market+Stocks",
             "Intel+Market+Stocks",
@@ -56,6 +56,16 @@ export default {
             "manga+magazine",
             "new+manga",
             "popular+manga",
+        ]
+    },
+    "r6s": {
+        name: 'Rainbow six Siege',
+        queries: [
+            "Rainbow+six+siege+operator",
+            "Rainbow+six+siege+map",
+            "Rainbow+six+siege+strats",
+            "Rainbow+six+siege+tournament",
+            "Rainbow+six+siege+official"
         ]
     }
 }

@@ -17,6 +17,17 @@ class ArticleMetadata {
         this.author = author
     }
 
+    hashCode(){
+        let string = JSON.stringify(this)
+        let hash = 0;
+        for (let i = 0; i < string.length; i++) {
+            let code = string.charCodeAt(i);
+            hash = ((hash<<5)-hash)+code;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return hash;
+    }
+
     isComplete() {
         return !!(this.url && this.title && this.description && this.imageLink)
     }

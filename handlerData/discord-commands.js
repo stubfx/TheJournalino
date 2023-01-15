@@ -1,4 +1,10 @@
-import {ChatInputCommandInteraction, Client, PermissionFlagsBits, SlashCommandBuilder,} from "discord.js";
+import {
+    ChatInputCommandInteraction,
+    Client,
+    PermissionFlagsBits,
+    PermissionsBitField,
+    SlashCommandBuilder,
+} from "discord.js";
 
 import locales from '../datamodels/locales.js'
 import * as dbAdapter from "../db/dbAdapter.js";
@@ -26,8 +32,8 @@ const commands = [{
     data: new SlashCommandBuilder()
         .setName('news')
         .setDescription("News setup command")
-        // server admin should handle this instead.
-        // .setDefaultMemberPermissions(PermissionsBitField.Default)
+        // server admin should handle this instead?
+        .setDefaultMemberPermissions(PermissionsBitField.Default)
         .addSubcommand(subcommandGroup => subcommandGroup
             .setName("add")
             .setDescription("Add an free news job to this channel")
@@ -61,7 +67,7 @@ const commands = [{
             if (viewChannelPermission && sendPermission) {
                 // add this channel to the news queue!
                 await dbAdapter.addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
-                await interaction.reply({content: `Aight ${interaction.user.username}, ${topic.value} news will be here soon!`, ephemeral: false});
+                await interaction.reply({content: `Aight ${interaction.user.username}, ${topicsData[topic.value].name} news will be here soon!`, ephemeral: false});
             } else {
                 // no permissions in this channel, pls try again.
                 await interaction.reply({content: `I have no permissions to send messages in this channel!`, ephemeral: true});
