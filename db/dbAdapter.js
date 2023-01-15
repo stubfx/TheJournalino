@@ -176,7 +176,8 @@ export function cacheRawArticles(queryString, rawArticles) {
 export function getCurrentTopicQuery(topic) {
     let topicData = topicsData[topic];
     // this should never happen, but do it just in case.
-    // if we see the error it means that somebody has found a way to sneak custom topics inside the command.
+    // if we see the error it means that somebody has found a way to sneak custom topics inside the command,
+    // or the topic has just been removed :/
     if (!topicData) {
         console.error(`Topic Error: ${topic} --- This topic does not exist!`)
         topicData = topicsData['top']
