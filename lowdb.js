@@ -7,7 +7,7 @@ import { JSONFile } from 'lowdb/node'
 
 // File path
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const file = join(__dirname, 'guildsDB.json')
+const file = join(__dirname, 'DB.json')
 
 // Configure lowdb to write to JSONFile
 const adapter = new JSONFile(file)

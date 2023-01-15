@@ -60,8 +60,6 @@ export async function findMetaEmbeds(rawGoogleArticle) {
     })
 }
 
-let tooExpensiveToLookFor = []
-
 async function sendArticleFromCache(googleNewsFeedUrl, newsData) {
     // look for the article in the cache if possible
     let cachedNewsArticle = await dbAdapter.getCurrentArticle(googleNewsFeedUrl);
@@ -81,7 +79,7 @@ function fetchGoogleNews(newsData) {
     return new Promise(async resolve => {
         // get the url first
         const googleNewsFeedUrl = getGoogleNewsFeedUrl(newsData);
-        if (tooExpensiveToLookFor.includes(googleNewsFeedUrl)) {
+        if (dbAdapter.isQueryTooExpensive(googleNewsFeedUrl)) {
             // hell nay.
             console.log(`Not looking for ${googleNewsFeedUrl}`)
             resolve()
@@ -105,7 +103,7 @@ function fetchGoogleNews(newsData) {
                     // if this array is not worth fetching for...
                     if (!news || news.length < 5) {
                         // then im sry my little friend.
-                        tooExpensiveToLookFor.push(googleNewsFeedUrl)
+                        dbAdapter.addExpensiveQuery(googleNewsFeedUrl)
                         console.log(`Adding ${googleNewsFeedUrl} to the expensive list`)
                         resolve()
                         return
@@ -143,6 +141,7 @@ export function startNewsHandler(discordClient) {
                 })
             }
         }
+        await dbAdapter.patchData()
     // }, 10000)// run once every 10 seconds
     }, 3 * 60 * 60 * 1000)// run once every 3 hour
 }
@@ -185,7 +184,7 @@ function sendNews(channelId, articleMeta) {
         // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
         .setImage(articleMeta.imageLink)
         // .setTimestamp()
-        .setFooter({text: 'Ya know im a stub.'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
+        .setFooter({text: 'Add me to your server! Help me reach more people :3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
 
     if (articleMeta.author) {
         exampleEmbed.setAuthor({

@@ -1,4 +1,4 @@
-import guildsDB from "../lowdb.js";
+import db from "../lowdb.js";
 import topicsData from "../datamodels/topicsData.js";
 import {rndArrayItem} from "../utils.js";
 import {findMetaEmbeds} from "../newsHandler.js";
@@ -35,12 +35,12 @@ import {findMetaEmbeds} from "../newsHandler.js";
  */
 
 export function getAllGuilds() {
-    return guildsDB.data
+    return db.data.guilds
 }
 
 export async function removeNewsChannel(channel) {
     let found = false
-    let newsGuilds = guildsDB.data
+    let newsGuilds = db.data.guilds
     let currentNewsGuild = newsGuilds[channel.guild.id];
     if (currentNewsGuild) {
         for (let topicsKey in currentNewsGuild.topics) {
@@ -52,17 +52,17 @@ export async function removeNewsChannel(channel) {
         }
         delete currentNewsGuild.topics[channel.id]
     }
-    await guildsDB.write()
+    await patchData()
     return found
 }
 
 export async function removeGuild(guild) {
-    delete guildsDB.data[guild.id]
-    await guildsDB.write()
+    delete db.data.guilds[guild.id]
+    await patchData()
 }
 
 export async function addNewsGuild(guild, channelId, topic, language) {
-    let newsGuilds = guildsDB.data
+    let newsGuilds = db.data.guilds
     let currentNewsGuild = newsGuilds[guild.id]
     if (!currentNewsGuild) {
         currentNewsGuild = {name: guild.name, topics: {}}
@@ -75,7 +75,7 @@ export async function addNewsGuild(guild, channelId, topic, language) {
     }
     // in this case this topic does not exist yet
     currentNewsGuild.topics[topic] = {channelId: channelId, language: language}
-    await guildsDB.write()
+    await patchData()
 }
 
 let newsCache = {};
@@ -91,6 +91,10 @@ export function prepareForNewBatch() {
     clearCurrentArticlesCache()
 }
 
+export async function patchData() {
+    await db.write()
+}
+
 export function clearTopicsCache() {
     topicsCache = {}
 }
@@ -101,6 +105,20 @@ export function clearNewsCache() {
 
 export function clearCurrentArticlesCache() {
     currentArticlesCache = {}
+}
+
+export function addExpensiveQuery(queryString) {
+    if (!db.data.expensiveQueries) {
+        db.data.expensiveQueries = []
+    }
+    db.data.expensiveQueries.push(queryString)
+}
+
+export function isQueryTooExpensive(queryString) {
+    if (!db.data.expensiveQueries) {
+        db.data.expensiveQueries = []
+    }
+    return db.data.expensiveQueries.includes(queryString)
 }
 
 /**
