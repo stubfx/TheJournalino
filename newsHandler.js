@@ -184,7 +184,7 @@ function sendNews(channelId, articleMeta) {
         // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
         .setImage(articleMeta.imageLink)
         // .setTimestamp()
-        .setFooter({text: 'Add me to your server! Help me reach more people :3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
+        .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
 
     if (articleMeta.author) {
         exampleEmbed.setAuthor({
