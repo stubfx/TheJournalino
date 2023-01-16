@@ -59,12 +59,22 @@ export default {
         ]
     },
     "r6s": {
+        hideCommandOption: true,
         name: 'Rainbow six Siege',
         queries: [
             "Rainbow+six+siege+operator",
             "Rainbow+six+siege+map",
             "Rainbow+six+siege+tournament",
             "Rainbow+six+siege+official"
+        ]
+    },
+    "lol": {
+        name: 'League Of Legends',
+        queries: [
+            "Leagueoflegends",
+            "Leagueoflegends+new",
+            "Leagueoflegends+leaks",
+            "Leagueoflegends+champion"
         ]
     }
 }

@@ -156,7 +156,7 @@ async function getCachedStackNewsSanitizedArticle(queryString) {
         console.log(`${newsDBArray.length} currently cached items for ${queryString}`)
         article = newsDBArray.shift();
         article = await findMetaEmbeds(article)
-        if (article.isComplete()) {
+        if (article && article.isComplete()) {
             return article
         }
     }

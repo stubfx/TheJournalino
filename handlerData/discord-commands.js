@@ -13,7 +13,9 @@ import topicsData from "../datamodels/topicsData.js";
 function getTopicDataAsCommandChoices() {
     let tmp = []
     for (let topicsDataKey in topicsData) {
-        tmp.push({name: topicsData[topicsDataKey].name, value: topicsDataKey})
+        if (topicsDatatopicsData[topicsDataKey].hideCommandOption){
+            tmp.push({name: topicsData[topicsDataKey].name, value: topicsDataKey})
+        }
     }
     return tmp;
     // return [{name: 'Top News', value: 'top'},

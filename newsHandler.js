@@ -56,6 +56,7 @@ export async function findMetaEmbeds(rawGoogleArticle) {
                 resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
             }).catch(error => {
                 console.log(error);
+                resolve(null)
             })
     })
 }
