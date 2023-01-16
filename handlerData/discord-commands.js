@@ -13,7 +13,7 @@ import topicsData from "../datamodels/topicsData.js";
 function getTopicDataAsCommandChoices() {
     let tmp = []
     for (let topicsDataKey in topicsData) {
-        if (topicsDatatopicsData[topicsDataKey].hideCommandOption){
+        if (topicsData[topicsDataKey].hideCommandOption){
             tmp.push({name: topicsData[topicsDataKey].name, value: topicsDataKey})
         }
     }
