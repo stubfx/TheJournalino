@@ -7,7 +7,6 @@ export default {
         name: 'Gaming',
         queries: [
             "SeaOfThieves",
-
             "Overwatch+2",
             "Rainbow+six+siege",
             "Valve+Steam+games",

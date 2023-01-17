@@ -7,17 +7,26 @@ import { JSONFile } from 'lowdb/node'
 
 // File path
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const file = join(__dirname, 'DB.json')
+const guildsFile = join(__dirname, 'db/guildsDB.json')
+const newsFile = join(__dirname, 'db/newsDB.json')
 
 // Configure lowdb to write to JSONFile
-const adapter = new JSONFile(file)
-const guildsDB = new Low(adapter)
+// const adapter = new JSONFile(file)
+const guildsDB = new Low(new JSONFile(guildsFile))
+const newsDB = new Low(new JSONFile(newsFile))
 
 // Read data from JSON file, this will set db.data content
 await guildsDB.read()
 if (!guildsDB.data) {
     guildsDB.data = {}
     await guildsDB.write()
+}
+
+// Read data from JSON file, this will set db.data content
+await newsDB.read()
+if (!newsDB.data) {
+    newsDB.data = {}
+    await newsDB.write()
 }
 
 // // If db.json doesn't exist, db.data will be null
@@ -35,4 +44,4 @@ if (!guildsDB.data) {
 //
 // // Finally write db.data content to file
 // await db.write()
-export default guildsDB
+export {guildsDB, newsDB}

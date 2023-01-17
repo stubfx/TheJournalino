@@ -1,7 +1,7 @@
-import db from "../lowdb.js";
-import topicsData from "../datamodels/topicsData.js";
-import {rndArrayItem} from "../utils.js";
-import {findMetaEmbeds} from "../newsHandler.js";
+import {guildsDB, newsDB} from "./lowdb.js";
+import topicsData from "./datamodels/topicsData.js";
+import {rndArrayItem} from "./utils.js";
+import {findMetaEmbeds} from "./newsHandler.js";
 
 /**
  * @typedef NewsTopic
@@ -35,12 +35,12 @@ import {findMetaEmbeds} from "../newsHandler.js";
  */
 
 export function getAllGuilds() {
-    return db.data.guilds
+    return guildsDB.data.guilds
 }
 
 export async function removeNewsChannel(channel) {
     let found = false
-    let newsGuilds = db.data.guilds
+    let newsGuilds = guildsDB.data.guilds
     let currentNewsGuild = newsGuilds[channel.guild.id];
     if (currentNewsGuild) {
         for (let topicsKey in currentNewsGuild.topics) {
@@ -57,12 +57,12 @@ export async function removeNewsChannel(channel) {
 }
 
 export async function removeGuild(guild) {
-    delete db.data.guilds[guild.id]
+    delete guildsDB.data.guilds[guild.id]
     await patchData()
 }
 
 export async function addNewsGuild(guild, channelId, topic, language) {
-    let newsGuilds = db.data.guilds
+    let newsGuilds = guildsDB.data.guilds
     let currentNewsGuild = newsGuilds[guild.id]
     if (!currentNewsGuild) {
         currentNewsGuild = {name: guild.name, topics: {}}
@@ -78,7 +78,6 @@ export async function addNewsGuild(guild, channelId, topic, language) {
     await patchData()
 }
 
-let newsCache = {};
 let topicsCache = {};
 /**
  * holds current articles for this news batch
@@ -92,7 +91,7 @@ export function prepareForNewBatch() {
 }
 
 export async function patchData() {
-    await db.write()
+    await guildsDB.write()
 }
 
 export function clearTopicsCache() {
@@ -100,7 +99,7 @@ export function clearTopicsCache() {
 }
 
 export function clearNewsCache() {
-    newsCache = {}
+    newsDB.data.articles = {}
 }
 
 export function clearCurrentArticlesCache() {
@@ -108,17 +107,17 @@ export function clearCurrentArticlesCache() {
 }
 
 export function addExpensiveQuery(queryString) {
-    if (!db.data.expensiveQueries) {
-        db.data.expensiveQueries = []
+    if (!guildsDB.data.expensiveQueries) {
+        guildsDB.data.expensiveQueries = []
     }
-    db.data.expensiveQueries.push(queryString)
+    guildsDB.data.expensiveQueries.push(queryString)
 }
 
 export function isQueryTooExpensive(queryString) {
-    if (!db.data.expensiveQueries) {
-        db.data.expensiveQueries = []
+    if (!guildsDB.data.expensiveQueries) {
+        guildsDB.data.expensiveQueries = []
     }
-    return db.data.expensiveQueries.includes(queryString)
+    return guildsDB.data.expensiveQueries.includes(queryString)
 }
 
 /**
@@ -150,7 +149,7 @@ async function getCachedStackNewsSanitizedArticle(queryString) {
     /**
      * @type Array<RawGoogleArticle>
      */
-    let newsDBArray = newsCache[queryString];
+    let newsDBArray = newsDB.data.articles[queryString];
     let article = undefined
     while (newsDBArray && newsDBArray.length) {
         console.log(`${newsDBArray.length} currently cached items for ${queryString}`)
@@ -170,7 +169,7 @@ async function getCachedStackNewsSanitizedArticle(queryString) {
  * @param {Array<RawGoogleArticle>}rawArticles
  */
 export function cacheRawArticles(queryString, rawArticles) {
-    newsCache[queryString] = rawArticles
+    newsDB.data.articles[queryString] = rawArticles
 }
 
 export function getCurrentTopicQuery(topic) {

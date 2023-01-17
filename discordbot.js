@@ -1,7 +1,7 @@
 import Discord, {Events, IntentsBitField} from "discord.js";
 import updateCommands from "./commandHandler.js"
 import {startNewsHandler} from "./newsHandler.js";
-import * as dbAdapter from "./db/dbAdapter.js";
+import * as dbAdapter from "./dbAdapter.js";
 
 export function initBot() {
     const client = new Discord.Client({intents: [IntentsBitField.Flags.Guilds]});

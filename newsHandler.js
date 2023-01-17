@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
 import {EmbedBuilder} from "discord.js";
-import * as dbAdapter from "./db/dbAdapter.js";
+import * as dbAdapter from "./dbAdapter.js";
 
 let client = null
 
@@ -123,7 +123,7 @@ function fetchGoogleNews(newsData) {
 export function startNewsHandler(discordClient) {
     client = discordClient
 
-    setInterval(async () => {
+    setTimeout(async () => {
         console.log('--------------------- NEWS BATCH ---------------------')
         let allGuilds = dbAdapter.getAllGuilds();
         // reset cache for the next news cycle.
@@ -142,8 +142,8 @@ export function startNewsHandler(discordClient) {
             }
         }
         await dbAdapter.patchData()
-    // }, 10000)// run once every 10 seconds
-    }, 3 * 60 * 60 * 1000)// run once every 3 hour
+    }, 10000)// run once every 10 seconds
+    // }, 3 * 60 * 60 * 1000)// run once every 3 hour
 }
 
 
@@ -189,7 +189,7 @@ function sendNews(channelId, articleMeta) {
     if (articleMeta.author) {
         exampleEmbed.setAuthor({
             name: articleMeta.author,
-            iconURL: 'https://images.unsplash.com/photo-1530669731069-48706bc794ab?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80',
+            iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
             // url: article.source.url
         })
     }

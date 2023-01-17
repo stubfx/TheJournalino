@@ -7,7 +7,7 @@ import {
 } from "discord.js";
 
 import locales from '../datamodels/locales.js'
-import * as dbAdapter from "../db/dbAdapter.js";
+import * as dbAdapter from "../dbAdapter.js";
 import topicsData from "../datamodels/topicsData.js";
 
 function getTopicDataAsCommandChoices() {
