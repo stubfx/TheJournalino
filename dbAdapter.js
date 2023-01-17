@@ -92,6 +92,7 @@ export function prepareForNewBatch() {
 
 export async function patchData() {
     await guildsDB.write()
+    await newsDB.write()
 }
 
 export function clearTopicsCache() {

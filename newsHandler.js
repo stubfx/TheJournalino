@@ -124,7 +124,7 @@ function fetchGoogleNews(newsData) {
 export function startNewsHandler(discordClient) {
     client = discordClient
 
-    setTimeout(async () => {
+    setInterval(async () => {
         console.log('--------------------- NEWS BATCH ---------------------')
         let allGuilds = dbAdapter.getAllGuilds();
         // reset cache for the next news cycle.
@@ -143,8 +143,8 @@ export function startNewsHandler(discordClient) {
             }
         }
         await dbAdapter.patchData()
-    }, 10000)// run once every 10 seconds
-    // }, 3 * 60 * 60 * 1000)// run once every 3 hour
+    // }, 10000)// run once every 10 seconds
+    }, 3 * 60 * 60 * 1000)// run once every 3 hour
 }
 
 
