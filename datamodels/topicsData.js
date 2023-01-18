@@ -102,7 +102,7 @@ export default {
         ]
     },
     "crimes": {
-        name: 'War',
+        name: 'Crimes',
         queries: [
             "Drunk+driver+crime",
             "Pursuit+crime",
