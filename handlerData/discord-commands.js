@@ -1,6 +1,6 @@
 import {
     ChatInputCommandInteraction,
-    Client,
+    Client, EmbedBuilder,
     PermissionFlagsBits,
     PermissionsBitField,
     SlashCommandBuilder,
@@ -13,7 +13,7 @@ import topicsData from "../datamodels/topicsData.js";
 function getTopicDataAsCommandChoices() {
     let tmp = []
     for (let topicsDataKey in topicsData) {
-        if (!topicsData[topicsDataKey].hideCommandOption){
+        if (!topicsData[topicsDataKey].hideCommandOption) {
             tmp.push({name: topicsData[topicsDataKey].name, value: topicsDataKey})
         }
     }
@@ -69,19 +69,70 @@ const commands = [{
             if (viewChannelPermission && sendPermission) {
                 // add this channel to the news queue!
                 await dbAdapter.addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
-                await interaction.reply({content: `Aight ${interaction.user.username}, ${topicsData[topic.value].name} news will be here soon!`, ephemeral: false});
+                await interaction.reply({
+                    content: `Aight ${interaction.user.username}, ${topicsData[topic.value].name} news will be here soon!`,
+                    ephemeral: false
+                });
             } else {
                 // no permissions in this channel, pls try again.
-                await interaction.reply({content: `I have no permissions to send messages in this channel!`, ephemeral: true});
+                await interaction.reply({
+                    content: `I have no permissions to send messages in this channel!`,
+                    ephemeral: true
+                });
             }
         } else if (subcommand === "remove") {
             let removed = await dbAdapter.removeNewsChannel(interaction.channel);
             if (removed) {
-                await interaction.reply({content: `You wont receive free news in this channel anymore.`, ephemeral: true});
+                await interaction.reply({
+                    content: `You wont receive free news in this channel anymore.`,
+                    ephemeral: false
+                });
             } else {
                 await interaction.reply({content: `This channel is not listed for free news`, ephemeral: true});
             }
         }
     }
-}]
+}, {
+        data: new SlashCommandBuilder()
+            .setName('help')
+            .setDescription("HEEEEEEELP"),
+            // server admin should handle this instead?
+            // .setDefaultMemberPermissions(PermissionsBitField.All),
+        // .setDefaultMemberPermissions(PermissionsBitField.Default),
+        async execute(client, interaction) {
+            // inside a command, event listener, etc.
+            const exampleEmbed = new EmbedBuilder()
+                .setColor(0x0099FF)
+                .setAuthor({name: "Free News",
+                        iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
+                        url: "https://freenewsbot.glitch.me/"
+                        })
+                .setTitle("Free News Help!")
+                // .setURL(articleMeta.url)
+                .setDescription("Are you looking for Gaming leaks? Criminals? Tech news?\nOr anyhing else?\n" +
+                    "I got you! \nThe only command you need is: \n\n" +
+                    "**/news**\n\n" +
+                    "try: \n\n" +
+                    "/news add Gaming English\n\n" +
+                    "You will receive news relative to your topic soon after running the command, however it may take up to 3 hours sometimes!\n\n")
+                .setThumbnail('https://freenewsbot.glitch.me/icon.png')
+                // .addFields(
+                //     {name: '/news', value: 'test'},
+                //     { name: '\u200B', value: '\u200B' },
+                //     { name: 'Inline field title', value: 'Some value here', inline: true },
+                //     { name: 'Inline field title', value: 'Some value here', inline: true },
+                // )
+                // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
+                // .setImage(articleMeta.imageLink)
+                // .setTimestamp()
+                .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
+
+            // exampleEmbed.setAuthor({
+            //     name: "cacca",
+            //     iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
+            //     // url: article.source.url
+            // })
+            await interaction.reply({embeds: [exampleEmbed], ephemeral: false});
+        }
+    }]
 export default commands;
