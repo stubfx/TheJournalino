@@ -17,6 +17,22 @@ export default {
             "League+of+Legends",
         ]
     },
+    "movies&series": {
+        name: 'Movies and Series',
+        queries: [
+            "Netflix+upcoming",
+            "Christopher+Nolan+new+movie",
+            "War+movie",
+            "Marvel+cinematic+universe",
+            "DC+cinematic+universe",
+            "HBO+new+serie",
+            "Pixar+movie",
+            "Disney+plus+upcoming",
+            "Quentin+Tarantino",
+            "Upcoming+movie+leak",
+            "Tom+Cruise"
+        ]
+    },
     "tech": {
         name: 'Tech',
         queries: [
@@ -58,7 +74,6 @@ export default {
         ]
     },
     "r6s": {
-        hideCommandOption: true,
         name: 'Rainbow six Siege',
         queries: [
             "Rainbow+six+siege+operator",
@@ -74,6 +89,25 @@ export default {
             "Leagueoflegends+new",
             "Leagueoflegends+leaks",
             "Leagueoflegends+champion"
+        ]
+    },
+    "war": {
+        name: 'War',
+        queries: [
+            "Ukraine+War",
+            "War+Crime",
+            "America+War",
+            "Military+mission",
+            "Strategic+Military+war"
+        ]
+    },
+    "crimes": {
+        name: 'War',
+        queries: [
+            "Drunk+driver+crime",
+            "Pursuit+crime",
+            "Escaped+from+prison+fugitive",
+            "Stolen+car+crime"
         ]
     }
 }
