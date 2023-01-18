@@ -108,17 +108,17 @@ export function clearCurrentArticlesCache() {
 }
 
 export function addExpensiveQuery(queryString) {
-    if (!guildsDB.data.expensiveQueries) {
-        guildsDB.data.expensiveQueries = []
+    if (!newsDB.data.expensiveQueries) {
+        newsDB.data.expensiveQueries = []
     }
-    guildsDB.data.expensiveQueries.push(queryString)
+    newsDB.data.expensiveQueries.push(queryString)
 }
 
 export function isQueryTooExpensive(queryString) {
-    if (!guildsDB.data.expensiveQueries) {
-        guildsDB.data.expensiveQueries = []
+    if (!newsDB.data.expensiveQueries) {
+        newsDB.data.expensiveQueries = []
     }
-    return guildsDB.data.expensiveQueries.includes(queryString)
+    return newsDB.data.expensiveQueries.includes(queryString)
 }
 
 /**
