@@ -18,7 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const fastify = fastify0({
     // Set this to true for detailed logging:
-    logger: false,
+    logger: true,
 });
 
 // Setup our static files
