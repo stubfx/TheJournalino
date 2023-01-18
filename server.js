@@ -29,8 +29,7 @@ fastify.register(fastifyStatic, {
 
 // Run the server and report out to the logs
 fastify.listen(
-    // { port: 3000, host: "127.0.0.1" },
-    { port: 3000 },
+    { port: 3000, host: "0.0.0.0" },
     function (err, address) {
         if (err) {
             console.error(err);
