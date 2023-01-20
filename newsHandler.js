@@ -46,19 +46,31 @@ export async function findMetaEmbeds(rawGoogleArticle) {
     return new Promise(async resolve => {
         // gets the link from the Google article
         let url = rawGoogleArticle.description.match(/(?<=href=['"])[^'"]*/g)[0]
-        await fetch(url)
-            .then(result => result.text())
-            .then(html => {
-                // LoggerHelper.info(html);
-                const $ = cheerio.load(html);
-                let title = $('meta[property="og:title"]').attr('content')
-                let description = $('meta[property="og:description"]').attr('content')
-                let imageLink = $('meta[property="og:image"]').attr('content')
-                resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
-            }).catch(error => {
-                LoggerHelper.error(error);
-                resolve(null)
-            })
+        LoggerHelper.dev(`Fetching ${url}`)
+        try {
+            let response = await fetch(url);
+            let html = await response.text()
+            const $ = cheerio.load(html);
+            let title = $('meta[property="og:title"]').attr('content')
+            let description = $('meta[property="og:description"]').attr('content')
+            let imageLink = $('meta[property="og:image"]').attr('content')
+            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
+        } catch (e) {
+            LoggerHelper.error(e);
+            resolve(null)
+        }
+        // await fetch(url)
+        //     .then(result => result.text())
+        //     .then(html => {
+        //         // LoggerHelper.info(html);
+        //         const $ = cheerio.load(html);
+        //         let title = $('meta[property="og:title"]').attr('content')
+        //         let description = $('meta[property="og:description"]').attr('content')
+        //         let imageLink = $('meta[property="og:image"]').attr('content')
+        //         resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
+        //     }).catch(error => {
+        //
+        //     })
     })
 }
 
