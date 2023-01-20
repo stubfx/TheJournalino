@@ -105,9 +105,17 @@ export function prepareForNewBatch() {
     clearCurrentArticlesCache()
 }
 
-export async function patchData() {
+async function patchGuildsData() {
     await guildsDB.write()
+}
+
+async function patchNewsData() {
     await newsDB.write()
+}
+
+export async function patchData() {
+    await patchGuildsData();
+    await patchNewsData();
 }
 
 export function clearTopicsCache() {
@@ -142,11 +150,12 @@ export function isQueryTooExpensive(queryString) {
  * @return {Promise<ArticleMetadata|null>}
  */
 export async function getCurrentArticle(queryString) {
+    LoggerHelper.dev(`Looking for article in cache - ${queryString}`)
     // does the current one exist?
     if (!currentArticlesCache[queryString]) {
         // in this the article is not in the cache yet!
         // let's get it
-        LoggerHelper.dev(`article is not in cache yet - ${queryString}`)
+        LoggerHelper.dev(`Adding article in cache for - ${queryString}`)
         currentArticlesCache[queryString] = await getCachedStackNewsSanitizedArticle(queryString)
     }
     // then just return it.
@@ -167,17 +176,22 @@ async function getCachedStackNewsSanitizedArticle(queryString) {
      * @type Array<RawGoogleArticle>
      */
     let newsDBArray = newsDB.data.articles[queryString];
-    let article = undefined
+    let article = null
     while (newsDBArray && newsDBArray.length) {
         LoggerHelper.dev(`${newsDBArray.length} currently cached items for ${queryString}`)
         article = newsDBArray.shift();
         article = await findMetaEmbeds(article)
-        if (article && article.isComplete()) {
-            return article
+        if (!article || !article.isComplete()) {
+            article = null
+        } else {
+            // in this case we are going out with the article!
+            break
         }
     }
-    // in this case no complete article has been found :/
-    return null
+    // this is to make sure that if something goes wrong with this news batch, we got rid of the article
+    // so in case the bot crashes, nobody will see it twice.
+    await patchNewsData()
+    return article
 }
 
 /**

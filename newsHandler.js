@@ -18,6 +18,17 @@ class ArticleMetadata {
         this.author = author
     }
 
+    hashCode() {
+        let string = this.toString()
+        let hash = 0;
+        for (let i = 0; i < string.length; i++) {
+            let code = string.charCodeAt(i);
+            hash = ((hash<<5)-hash)+code;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return hash;
+    }
+
     isComplete() {
         return !!(this.url && this.title && this.description && this.imageLink)
     }
@@ -140,12 +151,18 @@ async function startNewsBatch() {
         LoggerHelper.info(`---- ${currentGuild.name} ----`)
         for (let topicsKey in currentGuild.topics) {
             let topic = currentGuild.topics[topicsKey];
-            await fetchGoogleNews({
-                topic: topicsKey,
-                language: topic.language,
-                hourInterval: 1,
-                channelId: topic.channelId
-            })
+            try {
+                await fetchGoogleNews({
+                    topic: topicsKey,
+                    language: topic.language,
+                    hourInterval: 1,
+                    channelId: topic.channelId
+                })
+            } catch (e) {
+                // in case of error, keep going.
+                LoggerHelper.error(`Fatal error encountered for ${currentGuild.name}(${allGuildsKey}) - topic: ${topicsKey} - language: ${topic.language}`)
+                LoggerHelper.error(e)
+            }
         }
     }
     await dbAdapter.patchData()
@@ -184,8 +201,9 @@ export function startNewsHandler(discordClient) {
  * @param {any}articleMeta
  */
 function sendNews(channelId, articleMeta) {
+    LoggerHelper.info(`Sending article "${articleMeta.title}"`)
     if (process.env.dev) {
-        LoggerHelper.dev(`DEV SIM: sending article "${articleMeta.title}"`)
+        LoggerHelper.dev(`Not sending article in dev mode - "${articleMeta.title}"`)
         return
     }
     // inside a command, event listener, etc.
