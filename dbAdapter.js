@@ -2,6 +2,8 @@ import {guildsDB, newsDB} from "./lowdb.js";
 import topicsData from "./datamodels/topicsData.js";
 import {rndArrayItem} from "./utils.js";
 import {findMetaEmbeds} from "./newsHandler.js";
+import * as LoggerHelper from "./loggerHelper.js";
+
 
 /**
  * @typedef NewsTopic
@@ -38,19 +40,32 @@ export function getAllGuilds() {
     return guildsDB.data.guilds
 }
 
-export async function removeNewsChannel(channel) {
+export async function removeNewsChannel(channel, topic) {
     let found = false
     let newsGuilds = guildsDB.data.guilds
     let currentNewsGuild = newsGuilds[channel.guild.id];
     if (currentNewsGuild) {
-        for (let topicsKey in currentNewsGuild.topics) {
-            let topic = currentNewsGuild.topics[topicsKey]
-            if (topic.channelId === channel.id) {
-                delete currentNewsGuild.topics[topicsKey]
+        if (!topic) {
+            // if there is no topic, delete all topics from this channel.
+            for (let topicsKey in currentNewsGuild.topics) {
+                let topic = currentNewsGuild.topics[topicsKey]
+                if (topic.channelId === channel.id) {
+                    // in this case the topic doesn't matter, just remove it.
+                    delete currentNewsGuild.topics[topicsKey]
+                }
                 found = true
             }
+        } else {
+            // topic is specific! Delete it only if the channel matches!
+            if (currentNewsGuild.topics) {
+                // does the topic match the channel?
+                if (currentNewsGuild.topics[topic] && currentNewsGuild.topics[topic].channelId === channel.id) {
+                    // then it exists, remove it!
+                    delete currentNewsGuild.topics[topic]
+                    found = true
+                }
+            }
         }
-        delete currentNewsGuild.topics[channel.id]
     }
     await patchData()
     return found
@@ -153,7 +168,7 @@ async function getCachedStackNewsSanitizedArticle(queryString) {
     let newsDBArray = newsDB.data.articles[queryString];
     let article = undefined
     while (newsDBArray && newsDBArray.length) {
-        console.log(`${newsDBArray.length} currently cached items for ${queryString}`)
+        LoggerHelper.dev(`${newsDBArray.length} currently cached items for ${queryString}`)
         article = newsDBArray.shift();
         article = await findMetaEmbeds(article)
         if (article && article.isComplete()) {
@@ -179,12 +194,12 @@ export function getCurrentTopicQuery(topic) {
     // if we see the error it means that somebody has found a way to sneak custom topics inside the command,
     // or the topic has just been removed :/
     if (!topicData) {
-        console.error(`Topic Error: ${topic} --- This topic does not exist!`)
+        LoggerHelper.error(`Topic Error: ${topic} --- This topic does not exist!`)
         topicData = topicsData['top']
     }
     // check in the cache!
     if (topicsCache[topic]) {
-        // console.log(`Topic cache: ${topicsCache[topic]} found topic in cache`)
+        // LoggerHelper.info(`Topic cache: ${topicsCache[topic]} found topic in cache`)
         return topicsCache[topic]
     } else {
         // well, looks like we need a new one!

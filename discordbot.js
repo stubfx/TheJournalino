@@ -2,23 +2,26 @@ import Discord, {Events, IntentsBitField} from "discord.js";
 import updateCommands from "./commandHandler.js"
 import {startNewsHandler} from "./newsHandler.js";
 import * as dbAdapter from "./dbAdapter.js";
+import * as LoggerHelper from "./loggerHelper.js";
 
 export function initBot() {
     const client = new Discord.Client({intents: [IntentsBitField.Flags.Guilds]});
     client.on(Events.ClientReady, () => {
-        console.log(`Logged in as ${client.user.tag}!`);
+        LoggerHelper.init(client)
+        LoggerHelper.dev(`Logged in as ${client.user.tag}!`);
         startNewsHandler(client)
         updateCommands(client)
+        LoggerHelper.info("FreeNews ready!")
     });
 
     client.on(Events.GuildCreate, guild => {
         // bot joined a build <3
-        console.log(`just joined: ${guild.id} ${guild.name}`)
+        LoggerHelper.info(`just joined: ${guild.id} ${guild.name}`)
     })
 
     client.on(Events.GuildDelete, async guild => {
         // bot left a build
-        console.log(`just left: ${guild.id} ${guild.name}`)
+        LoggerHelper.info(`just left: ${guild.id} ${guild.name}`)
         await dbAdapter.removeGuild(guild)
     })
 
@@ -29,6 +32,6 @@ export function initBot() {
     // client.on(Events.)
 
     client.login(process.env.discord_token).catch(reason => {
-        console.log(reason)
+        LoggerHelper.info(reason)
     });
 }

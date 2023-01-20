@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
 import {EmbedBuilder} from "discord.js";
 import * as dbAdapter from "./dbAdapter.js";
+import * as LoggerHelper from "./loggerHelper.js";
 
 let client = null
 
@@ -32,7 +33,7 @@ function getGoogleNewsFeedUrl(newsData) {
     // const postfix = '&hl=en-US&gl=US&ceid=US:en'
     const postfix = `&hl=${newsData.language}`
     let feedUrl = prefix + dbAdapter.getCurrentTopicQuery(newsData.topic) + postfix;
-    console.log(`GENERATED RSS FEED: ${feedUrl}`);
+    LoggerHelper.dev(`GENERATED RSS FEED: ${feedUrl}`);
     return feedUrl
 }
 
@@ -48,14 +49,14 @@ export async function findMetaEmbeds(rawGoogleArticle) {
         await fetch(url)
             .then(result => result.text())
             .then(html => {
-                // console.log(html);
+                // LoggerHelper.info(html);
                 const $ = cheerio.load(html);
                 let title = $('meta[property="og:title"]').attr('content')
                 let description = $('meta[property="og:description"]').attr('content')
                 let imageLink = $('meta[property="og:image"]').attr('content')
                 resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
             }).catch(error => {
-                console.log(error);
+                LoggerHelper.error(error);
                 resolve(null)
             })
     })
@@ -82,7 +83,7 @@ function fetchGoogleNews(newsData) {
         const googleNewsFeedUrl = getGoogleNewsFeedUrl(newsData);
         if (dbAdapter.isQueryTooExpensive(googleNewsFeedUrl)) {
             // hell nay.
-            console.log(`Not looking for ${googleNewsFeedUrl}`)
+            LoggerHelper.dev(`Not looking for ${googleNewsFeedUrl}`)
             resolve()
             return
         }
@@ -105,7 +106,7 @@ function fetchGoogleNews(newsData) {
                     if (!news || news.length < 5) {
                         // then im sry my little friend.
                         dbAdapter.addExpensiveQuery(googleNewsFeedUrl)
-                        console.log(`Adding ${googleNewsFeedUrl} to the expensive list`)
+                        LoggerHelper.info(`Adding ${googleNewsFeedUrl} to the expensive list`)
                         resolve()
                         return
                     }
@@ -116,7 +117,7 @@ function fetchGoogleNews(newsData) {
                     await sendArticleFromCache(googleNewsFeedUrl, newsData, resolve);
                     resolve()
                 }).catch(reason => {
-            console.error(reason)
+            LoggerHelper.error(reason)
         });
     })
 }
@@ -125,13 +126,13 @@ export function startNewsHandler(discordClient) {
     client = discordClient
 
     setInterval(async () => {
-        console.log('--------------------- NEWS BATCH ---------------------')
+        LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
         let allGuilds = dbAdapter.getAllGuilds();
         // reset cache for the next news cycle.
         dbAdapter.prepareForNewBatch();
         for (let allGuildsKey in allGuilds) {
             let currentGuild = allGuilds[allGuildsKey]
-            console.log(`---- ${currentGuild.name} ----`)
+            LoggerHelper.info(`---- ${currentGuild.name} ----`)
             for (let topicsKey in currentGuild.topics) {
                 let topic = currentGuild.topics[topicsKey];
                 await fetchGoogleNews({
@@ -165,7 +166,7 @@ export function startNewsHandler(discordClient) {
  */
 function sendNews(channelId, articleMeta) {
     if (process.env.dev) {
-        console.log(`DEV SIM: sending article "${articleMeta.title}"`)
+        LoggerHelper.dev(`DEV SIM: sending article "${articleMeta.title}"`)
         return
     }
     // inside a command, event listener, etc.
@@ -198,5 +199,5 @@ function sendNews(channelId, articleMeta) {
         .then(async channel => {
             await channel.send({embeds: [exampleEmbed]});
         })
-        .catch(console.error);
+        .catch(LoggerHelper.error);
 }

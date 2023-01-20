@@ -9,6 +9,8 @@ import {
 import locales from '../datamodels/locales.js'
 import * as dbAdapter from "../dbAdapter.js";
 import topicsData from "../datamodels/topicsData.js";
+import * as LoggerHelper from "../loggerHelper.js";
+import * as Utils from "../utils.js";
 
 function getTopicDataAsCommandChoices() {
     let tmp = []
@@ -54,6 +56,12 @@ const commands = [{
         ).addSubcommand(subcommandGroup => subcommandGroup
             .setName("remove")
             .setDescription("Remove an free news job to this channel")
+            .addStringOption(builder => builder
+                .setName("topic")
+                .setDescription("The topic you want the news for")
+                .addChoices({name: "All", value: "all"}, ...getTopicDataAsCommandChoices())
+                .setRequired(true)
+            )
         ),
     // .setDefaultMemberPermissions(PermissionsBitField.Default),
     async execute(client, interaction) {
@@ -70,9 +78,10 @@ const commands = [{
                 // add this channel to the news queue!
                 await dbAdapter.addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
                 await interaction.reply({
-                    content: `Aight ${interaction.user.username}, ${topicsData[topic.value].name} news will be here soon!`,
+                    content: `Aight ${interaction.user.username}, ${Utils.getNameFromTopicValue(topic.value)} news will be here soon!`,
                     ephemeral: false
                 });
+                LoggerHelper.info(`Server: ${interaction.guild.name} (${interaction.guild.id}) is adding "${Utils.getNameFromTopicValue(topic.value)}"`)
             } else {
                 // no permissions in this channel, pls try again.
                 await interaction.reply({
@@ -81,58 +90,68 @@ const commands = [{
                 });
             }
         } else if (subcommand === "remove") {
-            let removed = await dbAdapter.removeNewsChannel(interaction.channel);
+            let topic = interaction.options.get('topic');
+            let removed = false;
+            let successContent = "You wont receive free news in this channel anymore.";
+            let errorContent = "This channel is not listed for any tipe of free news";
+            if (topic.value !== "all") {
+                let codeTopicNameText = `**${Utils.getNameFromTopicValue(topic.value)}**`;
+                successContent = `You wont receive free news about ${codeTopicNameText} in this channel anymore.`;
+                errorContent = `I'm sorry but looks like that this channel is not listed for ${codeTopicNameText} news.`;
+            }
+            removed = await dbAdapter.removeNewsChannel(interaction.channel, topic.value !== 'all' ? topic.value : null);
             if (removed) {
                 await interaction.reply({
-                    content: `You wont receive free news in this channel anymore.`,
+                    content: successContent,
                     ephemeral: false
                 });
             } else {
-                await interaction.reply({content: `This channel is not listed for free news`, ephemeral: true});
+                await interaction.reply({content: errorContent, ephemeral: true});
             }
         }
     }
 }, {
-        data: new SlashCommandBuilder()
-            .setName('help')
-            .setDescription("HEEEEEEELP"),
-            // server admin should handle this instead?
-            // .setDefaultMemberPermissions(PermissionsBitField.All),
-        // .setDefaultMemberPermissions(PermissionsBitField.Default),
-        async execute(client, interaction) {
-            // inside a command, event listener, etc.
-            const exampleEmbed = new EmbedBuilder()
-                .setColor(0x0099FF)
-                .setAuthor({name: "Free News",
-                        iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
-                        url: "https://freenewsbot.glitch.me/"
-                        })
-                .setTitle("Free News Help!")
-                // .setURL(articleMeta.url)
-                .setDescription("Are you looking for Gaming leaks? Criminals? Tech news?\nOr anyhing else?\n" +
-                    "I got you! \nThe only command you need is: \n\n" +
-                    "**/news**\n\n" +
-                    "try: \n\n" +
-                    "/news add Gaming English\n\n" +
-                    "You will receive news relative to your topic soon after running the command, however it may take up to 3 hours sometimes!\n\n")
-                .setThumbnail('https://freenewsbot.glitch.me/icon.png')
-                // .addFields(
-                //     {name: '/news', value: 'test'},
-                //     { name: '\u200B', value: '\u200B' },
-                //     { name: 'Inline field title', value: 'Some value here', inline: true },
-                //     { name: 'Inline field title', value: 'Some value here', inline: true },
-                // )
-                // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
-                // .setImage(articleMeta.imageLink)
-                // .setTimestamp()
-                .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
+    data: new SlashCommandBuilder()
+        .setName('help')
+        .setDescription("HEEEEEEELP"),
+    // server admin should handle this instead?
+    // .setDefaultMemberPermissions(PermissionsBitField.All),
+    // .setDefaultMemberPermissions(PermissionsBitField.Default),
+    async execute(client, interaction) {
+        // inside a command, event listener, etc.
+        const exampleEmbed = new EmbedBuilder()
+            .setColor(0x0099FF)
+            .setAuthor({
+                name: "Free News",
+                iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
+                url: "https://freenewsbot.glitch.me/"
+            })
+            .setTitle("Free News Help!")
+            // .setURL(articleMeta.url)
+            .setDescription("Are you looking for Gaming leaks? Criminals? Tech news?\nOr anyhing else?\n" +
+                "I got you! \nThe only command you need is: \n\n" +
+                "**/news**\n\n" +
+                "try: \n\n" +
+                "/news add Gaming English\n\n" +
+                "You will receive news relative to your topic soon after running the command, however it may take up to 3 hours sometimes!\n\n")
+            .setThumbnail('https://freenewsbot.glitch.me/icon.png')
+            // .addFields(
+            //     {name: '/news', value: 'test'},
+            //     { name: '\u200B', value: '\u200B' },
+            //     { name: 'Inline field title', value: 'Some value here', inline: true },
+            //     { name: 'Inline field title', value: 'Some value here', inline: true },
+            // )
+            // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
+            // .setImage(articleMeta.imageLink)
+            // .setTimestamp()
+            .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
 
-            // exampleEmbed.setAuthor({
-            //     name: "cacca",
-            //     iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
-            //     // url: article.source.url
-            // })
-            await interaction.reply({embeds: [exampleEmbed], ephemeral: false});
-        }
-    }]
+        // exampleEmbed.setAuthor({
+        //     name: "cacca",
+        //     iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
+        //     // url: article.source.url
+        // })
+        await interaction.reply({embeds: [exampleEmbed], ephemeral: false});
+    }
+}]
 export default commands;

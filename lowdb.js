@@ -18,7 +18,7 @@ const newsDB = new Low(new JSONFile(newsFile))
 // Read data from JSON file, this will set db.data content
 await guildsDB.read()
 if (!guildsDB.data) {
-    guildsDB.data = {}
+    guildsDB.data = {guilds: {}}
     await guildsDB.write()
 }
 
