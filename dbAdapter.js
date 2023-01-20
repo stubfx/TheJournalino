@@ -146,6 +146,7 @@ export async function getCurrentArticle(queryString) {
     if (!currentArticlesCache[queryString]) {
         // in this the article is not in the cache yet!
         // let's get it
+        LoggerHelper.dev(`article is not in cache yet - ${queryString}`)
         currentArticlesCache[queryString] = await getCachedStackNewsSanitizedArticle(queryString)
     }
     // then just return it.

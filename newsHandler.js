@@ -137,6 +137,28 @@ function fetchGoogleNews(newsData) {
 export function startNewsHandler(discordClient) {
     client = discordClient
 
+    setTimeout(async () => {
+        LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
+        let allGuilds = dbAdapter.getAllGuilds();
+        // reset cache for the next news cycle.
+        dbAdapter.prepareForNewBatch();
+        for (let allGuildsKey in allGuilds) {
+            let currentGuild = allGuilds[allGuildsKey]
+            LoggerHelper.info(`---- ${currentGuild.name} ----`)
+            for (let topicsKey in currentGuild.topics) {
+                let topic = currentGuild.topics[topicsKey];
+                await fetchGoogleNews({
+                    topic: topicsKey,
+                    language: topic.language,
+                    hourInterval: 1,
+                    channelId: topic.channelId
+                })
+            }
+        }
+        await dbAdapter.patchData()
+        }, 10000)// run once every 10 seconds
+    // }, 3 * 60 * 60 * 1000)// run once every 3 hour
+
     setInterval(async () => {
         LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
         let allGuilds = dbAdapter.getAllGuilds();
@@ -156,7 +178,7 @@ export function startNewsHandler(discordClient) {
             }
         }
         await dbAdapter.patchData()
-    // }, 10000)// run once every 10 seconds
+        // }, 10000)// run once every 10 seconds
     }, 3 * 60 * 60 * 1000)// run once every 3 hour
 }
 
