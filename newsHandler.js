@@ -105,57 +105,64 @@ function fetchGoogleNews(newsData) {
             return
         }
         // otherwise we'll need to go through the painful Google process :P
-        fetch(googleNewsFeedUrl)
-            .then(value => value.text())
-            .then(value => JSON.parse(xmlParser.toJson(value, null))['rss']['channel']['item'])
-            .then(
-                /**
-                 *
-                 * @param {Array<RawGoogleArticle>}news
-                 */
-                async news => {
-                    // if this array is not worth fetching for...
-                    if (!news || news.length < 5) {
-                        // then im sry my little friend.
-                        dbAdapter.addExpensiveQuery(googleNewsFeedUrl)
-                        LoggerHelper.info(`Adding ${googleNewsFeedUrl} to the expensive list`)
-                        resolve()
-                        return
-                    }
-                    // we don't wanna fetch them here as we may not need them (if the cache expires for example)
-                    // save articles to cache.
-                    dbAdapter.cacheRawArticles(googleNewsFeedUrl, news)
-                    // await fetchGoogleNews(newsData)
-                    await sendArticleFromCache(googleNewsFeedUrl, newsData, resolve);
-                    resolve()
-                }).catch(reason => {
-            LoggerHelper.error(reason)
-        });
+        try {
+            LoggerHelper.info(`Fetching Google for ${googleNewsFeedUrl}`)
+            let response = await fetch(googleNewsFeedUrl);
+            let rssText = await response.text()
+            let news = JSON.parse(xmlParser.toJson(rssText, null))['rss']['channel']['item']
+            // if this array is not worth fetching for...
+            if (!news || news.length < 5) {
+                // then im sry my little friend.
+                dbAdapter.addExpensiveQuery(googleNewsFeedUrl)
+                LoggerHelper.info(`Adding ${googleNewsFeedUrl} to the expensive list`)
+                resolve()
+                return
+            }
+            // we don't wanna fetch them here as we may not need them (if the cache expires for example)
+            // save articles to cache.
+            dbAdapter.cacheRawArticles(googleNewsFeedUrl, news)
+            // await fetchGoogleNews(newsData)
+            await sendArticleFromCache(googleNewsFeedUrl, newsData, resolve);
+        } catch (e) {
+            LoggerHelper.error(e)
+        }
+        resolve()
     })
+}
+
+async function startNewsBatch() {
+    LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
+    let allGuilds = dbAdapter.getAllGuilds();
+    // reset cache for the next news cycle.
+    dbAdapter.prepareForNewBatch();
+    for (let allGuildsKey in allGuilds) {
+        let currentGuild = allGuilds[allGuildsKey]
+        LoggerHelper.info(`---- ${currentGuild.name} ----`)
+        for (let topicsKey in currentGuild.topics) {
+            let topic = currentGuild.topics[topicsKey];
+            await fetchGoogleNews({
+                topic: topicsKey,
+                language: topic.language,
+                hourInterval: 1,
+                channelId: topic.channelId
+            })
+        }
+    }
+    await dbAdapter.patchData()
 }
 
 export function startNewsHandler(discordClient) {
     client = discordClient
 
+    if (process.env.dev) {
+        setTimeout(async () => {
+            await startNewsBatch();
+        }, 5000)// run once every 10 seconds
+        return
+    }
+
     setInterval(async () => {
-        LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
-        let allGuilds = dbAdapter.getAllGuilds();
-        // reset cache for the next news cycle.
-        dbAdapter.prepareForNewBatch();
-        for (let allGuildsKey in allGuilds) {
-            let currentGuild = allGuilds[allGuildsKey]
-            LoggerHelper.info(`---- ${currentGuild.name} ----`)
-            for (let topicsKey in currentGuild.topics) {
-                let topic = currentGuild.topics[topicsKey];
-                await fetchGoogleNews({
-                    topic: topicsKey,
-                    language: topic.language,
-                    hourInterval: 1,
-                    channelId: topic.channelId
-                })
-            }
-        }
-        await dbAdapter.patchData()
+        await startNewsBatch();
         // }, 10000)// run once every 10 seconds
     }, 3 * 60 * 60 * 1000)// run once every 3 hour
 }

@@ -25,7 +25,7 @@ if (!guildsDB.data) {
 // Read data from JSON file, this will set db.data content
 await newsDB.read()
 if (!newsDB.data) {
-    newsDB.data = {}
+    newsDB.data = {articles: {}, expensiveQueries: []}
     await newsDB.write()
 }
 

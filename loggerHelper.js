@@ -9,7 +9,7 @@ export function error(data) {
     client.channels.fetch(process.env.discord_log_channel_id)
         .then(async channel => {
             // await channel.send({embeds: [exampleEmbed]});
-            await channel.send(data);
+            await channel.send(`\`\`\`${data.toString()}\`\`\``);
         })
         .catch(console.error);
 }
