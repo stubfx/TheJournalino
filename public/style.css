@@ -18,6 +18,8 @@ body {
 .btn:hover {
     border: 1px solid white !important;
     background-color: #7289da !important;
+
+    animation: spinner 100ms infinite linear;
 }
 
 .btn.btn-primary span {
@@ -30,4 +32,13 @@ body {
 
 .header-logo {
     width: 200px;
+}
+
+@keyframes spinner {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
