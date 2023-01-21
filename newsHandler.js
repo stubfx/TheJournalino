@@ -167,10 +167,6 @@ export function startNewsHandler(discordClient) {
         return
     }
 
-    setTimeout(async () => {
-        await startNewsBatch();
-    }, 3000)// run once every 10 seconds
-
     setInterval(async () => {
         await startNewsBatch();
         // }, 10000)// run once every 10 seconds
