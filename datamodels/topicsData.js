@@ -109,5 +109,14 @@ export default {
             "Escaped+from+prison+fugitive",
             "Stolen+car+crime"
         ]
+    },
+    "potato": {
+        name: 'Potato',
+        queries: [
+            "harvesting+potatoes",
+            "cooking+with+potatoes",
+            "potato+dish",
+            "potato+battery"
+        ]
     }
 }
