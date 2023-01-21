@@ -88,8 +88,8 @@ export async function addNewsGuild(guild, channelId, topic, language) {
         currentTopic = {}
         currentNewsGuild.topics[topic] = currentTopic
     }
-    // in this case this topic does not exist yet
-    currentNewsGuild.topics[topic] = {channelId: channelId, language: language}
+    // time to push data into it.
+    currentNewsGuild.topics[topic] = {channelId: channelId, language: language, date: new Date()}
     await patchData()
 }
 
