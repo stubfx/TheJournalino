@@ -110,6 +110,15 @@ export default {
             "Stolen+car+crime"
         ]
     },
+    "lgbt": {
+        name: 'LGBT',
+        queries: [
+            "lgbt",
+            "lgbt+protest",
+            "lgbt+improvements",
+            "lgbt+rights"
+        ]
+    },
     "potato": {
         name: 'Potato',
         queries: [
