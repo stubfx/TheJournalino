@@ -1,6 +1,6 @@
 export default {
     "top": {
-        name: 'Top',
+        name: 'Top News',
         queries: ["top+news"]
     },
     "gaming": {

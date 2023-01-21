@@ -4,38 +4,6 @@ import {rndArrayItem} from "./utils.js";
 import {findMetaEmbeds} from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
 
-
-/**
- * @typedef NewsTopic
- * @property {string}name gaming
- * @property {string}language en
- */
-
-/**
- * @typedef NewsData
- * @property {string}topic
- * @property {string}channelId
- * @property {string}language
- * @property {number}hourInterval
- */
-
-/**
- * @typedef NewsGuild
- * @property {string}name gaming
- * @property {string}language en
- * @property {number}hourInterval 2 = every 2 hours
- */
-
-/**
- * @typedef NewsGuildTopic
- * @property {string}guildId
- * @property {string : NewsTopic}topics
- */
-
-/**
- * @typedef RawGoogleArticle
- */
-
 export function getAllGuilds() {
     return guildsDB.data.guilds
 }
@@ -146,17 +114,18 @@ export function isQueryTooExpensive(queryString) {
 
 /**
  *
+ * @param {NewsData}newsData
  * @param queryString
  * @return {Promise<ArticleMetadata|null>}
  */
-export async function getCurrentArticle(queryString) {
+export async function getCurrentArticle(newsData, queryString) {
     LoggerHelper.dev(`Looking for article in cache - ${queryString}`)
     // does the current one exist?
     if (!currentArticlesCache[queryString]) {
         // in this the article is not in the cache yet!
         // let's get it
         LoggerHelper.dev(`Adding article in cache for - ${queryString}`)
-        currentArticlesCache[queryString] = await getCachedStackNewsSanitizedArticle(queryString)
+        currentArticlesCache[queryString] = await getCachedStackNewsSanitizedArticle(newsData, queryString)
     }
     // then just return it.
     return currentArticlesCache[queryString]
@@ -168,10 +137,11 @@ export async function getCurrentArticle(queryString) {
  * returns the fetched article only if its "complete" (has enough info for the meta article),
  * if not removes that from the cache and proceeds with the next one.
  * returns the first cached article, null if none is cached for the given querystring.
+ * @param {NewsData}newsData
  * @param queryString
  * @return {Promise<ArticleMetadata|null>}
  */
-async function getCachedStackNewsSanitizedArticle(queryString) {
+async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
     /**
      * @type Array<RawGoogleArticle>
      */

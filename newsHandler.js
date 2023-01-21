@@ -8,7 +8,7 @@ import * as Utils from "./utils.js";
 let client = null
 
 class ArticleMetadata {
-    constructor(url, title, description, imageLink, author) {
+    constructor(url, title, description, imageLink, author, topic) {
         // noinspection JSUnusedGlobalSymbols
         this.googleRSSFEED = null
         this.url = url
@@ -16,6 +16,7 @@ class ArticleMetadata {
         this.description = description
         this.imageLink = imageLink
         this.author = author
+        this.topic = topic
     }
 
     hashCode() {
@@ -23,7 +24,7 @@ class ArticleMetadata {
         let hash = 0;
         for (let i = 0; i < string.length; i++) {
             let code = string.charCodeAt(i);
-            hash = ((hash<<5)-hash)+code;
+            hash = ((hash << 5) - hash) + code;
             hash = hash & hash; // Convert to 32bit integer
         }
         return hash;
@@ -65,7 +66,7 @@ export async function findMetaEmbeds(rawGoogleArticle) {
             let title = $('meta[property="og:title"]').attr('content')
             let description = $('meta[property="og:description"]').attr('content')
             let imageLink = $('meta[property="og:image"]').attr('content')
-            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
+            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t'], ))
         } catch (e) {
             LoggerHelper.error(e);
             resolve(null)
@@ -75,10 +76,10 @@ export async function findMetaEmbeds(rawGoogleArticle) {
 
 async function sendArticleFromCache(googleNewsFeedUrl, newsData) {
     // look for the article in the cache if possible
-    let cachedNewsArticle = await dbAdapter.getCurrentArticle(googleNewsFeedUrl);
+    let cachedNewsArticle = await dbAdapter.getCurrentArticle(newsData, googleNewsFeedUrl);
     if (cachedNewsArticle) {
         // if there is an article, just send it :P
-        sendNews(newsData.channelId, cachedNewsArticle)
+        sendNudes(newsData, cachedNewsArticle)
         return true
     }
     return false
@@ -166,6 +167,10 @@ export function startNewsHandler(discordClient) {
         return
     }
 
+    setTimeout(async () => {
+        await startNewsBatch();
+    }, 3000)// run once every 10 seconds
+
     setInterval(async () => {
         await startNewsBatch();
         // }, 10000)// run once every 10 seconds
@@ -184,24 +189,29 @@ export function startNewsHandler(discordClient) {
 // }
 /**
  *
- * @param {string}channelId
+ * @param {NewsData}newsData
  * FIXME docs.
  * @param {any}articleMeta
  */
-function sendNews(channelId, articleMeta) {
+function sendNudes(newsData, articleMeta) {
     LoggerHelper.dev(`Sending article "${articleMeta.title}"`)
     if (process.env.dev) {
         LoggerHelper.dev(`Not sending article in dev mode - "${articleMeta.title}"`)
         return
     }
     // inside a command, event listener, etc.
-    const exampleEmbed = new EmbedBuilder()
+    const msgEmbed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setTitle(articleMeta.title)
         .setURL(articleMeta.url)
         .setDescription(articleMeta.description)
+        .setAuthor({
+            name: "Free News!",
+            iconURL: 'https://freenewsbot.glitch.me/assets/imgs/freenews_love.png',
+            url: 'https://freenewsbot.glitch.me/'
+        })
 
-        // .setThumbnail('https://i.imgur.com/AfFp7pu.png')
+        // .setThumbnail('https://freenewsbot.glitch.me/icon.png')
         // .addFields(
         //     {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
         //     // { name: '\u200B', value: '\u200B' },
@@ -214,15 +224,16 @@ function sendNews(channelId, articleMeta) {
         .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
 
     if (articleMeta.author) {
-        exampleEmbed.setAuthor({
-            name: articleMeta.author,
-            iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
-            // url: article.source.url
-        })
+        msgEmbed.addFields(
+            // {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
+            // { name: '\u200B', value: '\u200B' },
+            { name: 'Author', value: articleMeta.author, inline: true },
+            { name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true },
+        )
     }
-    client.channels.fetch(channelId)
+    client.channels.fetch(newsData.channelId)
         .then(async channel => {
-            await channel.send({embeds: [exampleEmbed]});
+            await channel.send({embeds: [msgEmbed]});
         })
         .catch(LoggerHelper.error);
 }
