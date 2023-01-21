@@ -1,9 +1,9 @@
-import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
 import {EmbedBuilder} from "discord.js";
 import * as dbAdapter from "./dbAdapter.js";
 import * as LoggerHelper from "./loggerHelper.js";
+import * as Utils from "./utils.js";
 
 let client = null
 
@@ -59,7 +59,7 @@ export async function findMetaEmbeds(rawGoogleArticle) {
         let url = rawGoogleArticle.description.match(/(?<=href=['"])[^'"]*/g)[0]
         LoggerHelper.dev(`Fetching ${url}`)
         try {
-            let response = await fetch(url);
+            let response = await Utils.fetchWithTimeout(url)
             let html = await response.text()
             const $ = cheerio.load(html);
             let title = $('meta[property="og:title"]').attr('content')
@@ -70,18 +70,6 @@ export async function findMetaEmbeds(rawGoogleArticle) {
             LoggerHelper.error(e);
             resolve(null)
         }
-        // await fetch(url)
-        //     .then(result => result.text())
-        //     .then(html => {
-        //         // LoggerHelper.info(html);
-        //         const $ = cheerio.load(html);
-        //         let title = $('meta[property="og:title"]').attr('content')
-        //         let description = $('meta[property="og:description"]').attr('content')
-        //         let imageLink = $('meta[property="og:image"]').attr('content')
-        //         resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
-        //     }).catch(error => {
-        //
-        //     })
     })
 }
 
@@ -118,7 +106,7 @@ function fetchGoogleNews(newsData) {
         // otherwise we'll need to go through the painful Google process :P
         try {
             LoggerHelper.info(`Fetching Google for ${googleNewsFeedUrl}`)
-            let response = await fetch(googleNewsFeedUrl);
+            let response = await Utils.fetchWithTimeout(googleNewsFeedUrl);
             let rssText = await response.text()
             let news = JSON.parse(xmlParser.toJson(rssText, null))['rss']['channel']['item']
             // if this array is not worth fetching for...
