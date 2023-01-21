@@ -8,7 +8,7 @@ import * as Utils from "./utils.js";
 let client = null
 
 class ArticleMetadata {
-    constructor(url, title, description, imageLink, author, topic) {
+    constructor(url, title, description, imageLink, author) {
         // noinspection JSUnusedGlobalSymbols
         this.googleRSSFEED = null
         this.url = url
@@ -16,7 +16,6 @@ class ArticleMetadata {
         this.description = description
         this.imageLink = imageLink
         this.author = author
-        this.topic = topic
     }
 
     hashCode() {
@@ -66,7 +65,7 @@ export async function findMetaEmbeds(rawGoogleArticle) {
             let title = $('meta[property="og:title"]').attr('content')
             let description = $('meta[property="og:description"]').attr('content')
             let imageLink = $('meta[property="og:image"]').attr('content')
-            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t'], ))
+            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
         } catch (e) {
             LoggerHelper.error(e);
             resolve(null)
