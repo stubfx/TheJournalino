@@ -1,4 +1,5 @@
 import topicsData from "./datamodels/topicsData.js";
+import fetch from "node-fetch";
 
 export function rndArrayItem(arr) {
     return arr[Math.floor(Math.random() * arr.length)]
