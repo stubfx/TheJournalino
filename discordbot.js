@@ -16,12 +16,12 @@ export function initBot() {
 
     client.on(Events.GuildCreate, guild => {
         // bot joined a build <3
-        LoggerHelper.info(`just joined: ${guild.id} ${guild.name}`)
+        LoggerHelper.success(`just joined: ${guild.id} ${guild.name}`)
     })
 
     client.on(Events.GuildDelete, async guild => {
         // bot left a build
-        LoggerHelper.info(`just left: ${guild.id} ${guild.name}`)
+        LoggerHelper.error(`just left: ${guild.id} ${guild.name}`)
         await dbAdapter.removeGuild(guild)
     })
 

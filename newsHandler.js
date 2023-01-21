@@ -113,7 +113,7 @@ function fetchGoogleNews(newsData) {
             if (!news || news.length < 5) {
                 // then im sry my little friend.
                 dbAdapter.addExpensiveQuery(googleNewsFeedUrl)
-                LoggerHelper.info(`Adding ${googleNewsFeedUrl} to the expensive list`)
+                LoggerHelper.error(`Adding ${googleNewsFeedUrl} to the expensive list`)
                 resolve()
                 return
             }
