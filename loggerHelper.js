@@ -9,7 +9,17 @@ export function error(data) {
     client.channels.fetch(process.env.discord_log_channel_id)
         .then(async channel => {
             // await channel.send({embeds: [exampleEmbed]});
-            await channel.send(`\`\`\`${data.toString()}\`\`\``);
+            await channel.send(`:red_circle: - \`${data.toString()}\``);
+        })
+        .catch(console.error);
+}
+
+export function success(data) {
+    console.error(data)
+    client.channels.fetch(process.env.discord_log_channel_id)
+        .then(async channel => {
+            // await channel.send({embeds: [exampleEmbed]});
+            await channel.send(`:green_circle: - \`${data.toString()}\``);
         })
         .catch(console.error);
 }
@@ -19,7 +29,7 @@ export function info(data) {
     client.channels.fetch(process.env.discord_log_channel_id)
         .then(async channel => {
             // await channel.send({embeds: [exampleEmbed]});
-            await channel.send(`\`\`\`${data}\`\`\``);
+            await channel.send(`:blue_circle: - \`${data}\``);
         })
         .catch(console.error);
 }
