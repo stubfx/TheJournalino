@@ -15,7 +15,7 @@ export function error(data) {
 }
 
 export function success(data) {
-    console.error(data)
+    console.log(data)
     client.channels.fetch(process.env.discord_log_channel_id)
         .then(async channel => {
             // await channel.send({embeds: [exampleEmbed]});
