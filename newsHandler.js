@@ -163,7 +163,7 @@ export function startNewsHandler(discordClient) {
     // glitch likes to restart the app every 12 hours
     // which is at 2.45 and 14.45 in its local time
     // so, we just choose hours away from those, just to make sure.
-    const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 21]
+    const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
     let runLastTimeAt = null;
 
 
