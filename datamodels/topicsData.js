@@ -8,7 +8,7 @@ export default {
         queries: [
             "SeaOfThieves",
             "Overwatch+2",
-            "Rainbow+six+siege",
+            "Rainbow+six+siege+game",
             "Valve+Steam+games",
             "Warzone+2",
             "Videogames",
@@ -79,7 +79,8 @@ export default {
             "Rainbow+six+siege+operator",
             "Rainbow+six+siege+map",
             "Rainbow+six+siege+tournament",
-            "Rainbow+six+siege+official"
+            "Rainbow+six+siege+official",
+            "Rainbow+six+siege+multiplayer"
         ]
     },
     "lol": {
