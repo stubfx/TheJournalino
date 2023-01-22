@@ -67,6 +67,7 @@ export async function findMetaEmbeds(rawGoogleArticle) {
             let imageLink = $('meta[property="og:image"]').attr('content')
             resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
         } catch (e) {
+            LoggerHelper.error(`Fetching ${url}`)
             LoggerHelper.error(e);
             resolve(null)
         }
@@ -153,6 +154,7 @@ async function startNewsBatch() {
             }
         }
     }
+    LoggerHelper.info('------------------------ DONE ------------------------')
     await dbAdapter.patchData()
 }
 
