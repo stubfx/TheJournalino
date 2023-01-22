@@ -29,16 +29,16 @@ if (!newsDB.data) {
     await newsDB.write()
 }
 
-console.log("updating db")
-for (let articlesKey in newsDB.data.articles) {
-    if (newsDB.data.articles[articlesKey] instanceof Array) {
-        newsDB.data.articles[articlesKey] = {dateAdded: new Date(), dateFetched: new Date(), items: newsDB.data.articles[articlesKey]}
-    } else {
-        break
-    }
-}
-console.log("update db done.")
-await newsDB.write()
+// console.log("updating db")
+// for (let articlesKey in newsDB.data.articles) {
+//     if (newsDB.data.articles[articlesKey] instanceof Array) {
+//         newsDB.data.articles[articlesKey] = {dateAdded: new Date(), dateFetched: new Date(), items: newsDB.data.articles[articlesKey]}
+//     } else {
+//         break
+//     }
+// }
+// console.log("update db done.")
+// await newsDB.write()
 
 // // If db.json doesn't exist, db.data will be null
 // // Use the code below to set default data
