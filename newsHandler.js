@@ -160,6 +160,13 @@ async function startNewsBatch() {
 
 export function startNewsHandler(discordClient) {
     client = discordClient
+    // glitch likes to restart the app every 12 hours
+    // which is at 2.45 and 14.45 in its local time
+    // so, we just choose hours away from those, just to make sure.
+    const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 21]
+    let runLastTimeAt = null;
+
+
 
     if (process.env.dev) {
         setTimeout(async () => {
@@ -169,9 +176,19 @@ export function startNewsHandler(discordClient) {
     }
 
     setInterval(async () => {
-        await startNewsBatch();
-        // }, 10000)// run once every 10 seconds
-    }, 3 * 60 * 60 * 1000)// run once every 3 hour
+        // is the current hour in the calendar?
+        let currentHour = new Date().getHours();
+        if (hoursToRunAt.includes(currentHour)) {
+            // has the batch already run at this hour?
+            if (currentHour !== runLastTimeAt) {
+                // if not, we are safe to run another batch.
+                // in order to prevent a rerun in the same hour, we must save the last time the batch has run
+                runLastTimeAt = currentHour
+                // then just run it.
+                await startNewsBatch();
+            }
+        }
+    }, 30 * 60 * 1000) // this should run once every 30 mins
 }
 
 
@@ -224,8 +241,8 @@ function sendNudes(newsData, articleMeta) {
         msgEmbed.addFields(
             // {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
             // { name: '\u200B', value: '\u200B' },
-            { name: 'Author', value: articleMeta.author, inline: true },
-            { name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true },
+            {name: 'Author', value: articleMeta.author, inline: true},
+            {name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true},
         )
     }
     client.channels.fetch(newsData.channelId)

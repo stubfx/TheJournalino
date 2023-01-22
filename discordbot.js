@@ -6,11 +6,11 @@ import * as LoggerHelper from "./loggerHelper.js";
 
 export function initBot() {
     const client = new Discord.Client({intents: [IntentsBitField.Flags.Guilds]});
-    client.on(Events.ClientReady, () => {
+    client.on(Events.ClientReady, async () => {
         LoggerHelper.init(client)
         LoggerHelper.dev(`Logged in as ${client.user.tag}!`);
+        await updateCommands(client)
         startNewsHandler(client)
-        updateCommands(client)
         LoggerHelper.info("FreeNews ready!")
     });
 

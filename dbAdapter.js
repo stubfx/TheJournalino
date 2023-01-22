@@ -142,10 +142,29 @@ export async function getCurrentArticle(newsData, queryString) {
  * @return {Promise<ArticleMetadata|null>}
  */
 async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
+    let cachedDataItem = newsDB.data.articles[queryString];
+    if (!cachedDataItem) {
+        // no item in the cache.
+        return null
+    }
+    // chatGPT wrote this date check because I just wanted to have some fun :P
+    const currentDate = new Date()
+    const cachedDate = new Date(cachedDataItem.dateFetched)
+    let diff = (currentDate.getTime() - cachedDate.getTime()) / (1000 * 60 * 60 * 24);
+    if (diff >= 3) {
+        LoggerHelper.error(`CACHE IS OLD FOR ${queryString}`)
+        // in this case 3 days or more have passed, this cache is not valid anymore,
+        // we need to wait for somebody to update it.
+        return null
+    }
+    // if we are here, cache is fine, let's have a look into it.
+    // first of all, let's write down that we are actually fetching this
+    cachedDataItem.dateFetched = currentDate
+    // then we are going to iterate through the items.
     /**
      * @type Array<RawGoogleArticle>
      */
-    let newsDBArray = newsDB.data.articles[queryString];
+    let newsDBArray = cachedDataItem.items;
     let article = null
     while (newsDBArray && newsDBArray.length) {
         LoggerHelper.dev(`${newsDBArray.length} currently cached items for ${queryString}`)
@@ -170,7 +189,7 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
  * @param {Array<RawGoogleArticle>}rawArticles
  */
 export function cacheRawArticles(queryString, rawArticles) {
-    newsDB.data.articles[queryString] = rawArticles
+    newsDB.data.articles[queryString] = {dateAdded: new Date(), dateFetched: new Date(), items: rawArticles}
 }
 
 export function getCurrentTopicQuery(topic) {

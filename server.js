@@ -30,12 +30,12 @@ fastify.register(fastifyStatic, {
 // Run the server and report out to the logs
 fastify.listen(
     { port: 3000, host: "0.0.0.0" },
-    function (err, address) {
+    (err) => {
         if (err) {
             console.error(err);
             process.exit(1);
         }
-        console.log(`Your app is listening on ${address}`);
+        console.log(`Http server ready.`);
     }
 );
 
