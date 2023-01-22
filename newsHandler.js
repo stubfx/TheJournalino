@@ -204,11 +204,11 @@ function sendNudes(newsData, articleMeta) {
         .setDescription(articleMeta.description)
         .setAuthor({
             name: "Free News!",
-            iconURL: 'https://freenewsbot.glitch.me/assets/imgs/freenews_love.png',
-            url: 'https://freenewsbot.glitch.me/'
+            iconURL: 'https://freenews.stubfx.io/assets/imgs/freenews_love.png',
+            url: 'https://freenews.stubfx.io/'
         })
 
-        // .setThumbnail('https://freenewsbot.glitch.me/icon.png')
+        // .setThumbnail('https://freenews.stubfx.io/icon.png')
         // .addFields(
         //     {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
         //     // { name: '\u200B', value: '\u200B' },

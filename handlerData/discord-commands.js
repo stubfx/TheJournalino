@@ -125,7 +125,7 @@ const commands = [{
             .setAuthor({
                 name: "Free News",
                 iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
-                url: "https://freenewsbot.glitch.me/"
+                url: "https://freenews.stubfx.io/"
             })
             .setTitle("Free News Help!")
             // .setURL(articleMeta.url)
@@ -135,7 +135,7 @@ const commands = [{
                 "try: \n\n" +
                 "/news add Gaming English\n\n" +
                 "You will receive news relative to your topic soon after running the command, however it may take up to 3 hours sometimes!\n\n")
-            .setThumbnail('https://freenewsbot.glitch.me/icon.png')
+            .setThumbnail('https://freenews.stubfx.io/icon.png')
             // .addFields(
             //     {name: '/news', value: 'test'},
             //     { name: '\u200B', value: '\u200B' },
