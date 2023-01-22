@@ -6,7 +6,7 @@ export default [{name: "English", value: "en"},
     // {name: "Basque", value: "eu"},
     // {name: "Bengali", value: "bn"},
     // {name: "Portuguese (Brazil)", value: "pt-BR"},
-    {name: "Bulgarian", value: "bg"},
+    // {name: "Bulgarian", value: "bg"}, // google cannot find stuff
     // {name: "Catalan", value: "ca"},
     // {name: "Cherokee", value: "chr"},
     // {name: "Croatian", value: "hr"},
