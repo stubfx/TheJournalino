@@ -80,7 +80,7 @@ async function sendArticleFromCache(googleNewsFeedUrl, newsData) {
     let cachedNewsArticle = await dbAdapter.getCurrentArticle(newsData, googleNewsFeedUrl);
     if (cachedNewsArticle) {
         // if there is an article, just send it :P
-        sendNudes(newsData, cachedNewsArticle)
+        sendNudes(googleNewsFeedUrl, newsData, cachedNewsArticle)
         return true
     }
     return false
@@ -207,11 +207,12 @@ export function startNewsHandler(discordClient) {
 // }
 /**
  *
+ * @param {string}feedUrl
  * @param {NewsData}newsData
  * FIXME docs.
  * @param {any}articleMeta
  */
-function sendNudes(newsData, articleMeta) {
+function sendNudes(feedUrl, newsData, articleMeta) {
     try {
         LoggerHelper.info(`Sending article "${articleMeta.title}"`)
         if (process.env.dev) {
@@ -257,6 +258,7 @@ function sendNudes(newsData, articleMeta) {
             .catch(LoggerHelper.error);
     } catch (e) {
         // just to make sure.
+        LoggerHelper.error(feedUrl)
         LoggerHelper.error(e)
     }
 }
