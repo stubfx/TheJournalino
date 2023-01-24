@@ -68,8 +68,8 @@ export async function findMetaEmbeds(rawGoogleArticle) {
             let imageLink = $('meta[property="og:image"]').attr('content')
             resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
         } catch (e) {
-            LoggerHelper.error(`Fetching ${url}`)
-            LoggerHelper.error(e);
+            LoggerHelper.error(`Fetching ${url}`, true)
+            LoggerHelper.error(e, true);
             resolve(null)
         }
     })
@@ -146,7 +146,7 @@ async function startNewsBatch() {
     dbAdapter.prepareForNewBatch();
     for (let allGuildsKey in allGuilds) {
         let currentGuild = allGuilds[allGuildsKey]
-        LoggerHelper.info(`---- ${currentGuild.name} ----`)
+        LoggerHelper.info(`Running for ${currentGuild.name}`)
         for (let topicsKey in currentGuild.topics) {
             let topic = currentGuild.topics[topicsKey];
             try {
@@ -258,6 +258,7 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             .catch(LoggerHelper.error);
     } catch (e) {
         // just to make sure.
+        LoggerHelper.error(`ChannelID: ${newsData.channelId}`)
         LoggerHelper.error(feedUrl)
         LoggerHelper.error(e)
     }

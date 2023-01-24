@@ -17,14 +17,16 @@ export function init(discordClient) {
     client = discordClient
 }
 
-export function error(data) {
+export function error(data, consoleOnly = false) {
     console.error(data)
-    client.channels.fetch(process.env.discord_log_channel_id)
-        .then(async channel => {
-            // await channel.send({embeds: [exampleEmbed]});
-            await channel.send(`:red_circle:\`${data.toString()}\``);
-        })
-        .catch(console.error);
+    if (!consoleOnly) {
+        client.channels.fetch(process.env.discord_log_channel_id)
+            .then(async channel => {
+                // await channel.send({embeds: [exampleEmbed]});
+                await channel.send(`:red_circle:\`${data.toString()}\``);
+            })
+            .catch(console.error);
+    }
 }
 
 export function success(data) {
