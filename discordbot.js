@@ -16,7 +16,7 @@ export function initBot() {
 
     client.on(Events.GuildCreate, guild => {
         // bot joined a build <3
-        LoggerHelper.success(`just joined: ${guild.id} ${guild.name}`)
+        LoggerHelper.success(`just joined: ${guild.name}(${guild.id})`)
     })
 
     client.on(Events.GuildDelete, async guild => {

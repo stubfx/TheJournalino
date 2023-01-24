@@ -89,7 +89,7 @@ async function sendArticleFromCache(googleNewsFeedUrl, newsData) {
  *
  * @param {NewsData}newsData
  */
-function fetchGoogleNews(newsData) {
+function sendTopicNewsInChannel(newsData) {
     return new Promise(async resolve => {
         // get the url first
         const googleNewsFeedUrl = getGoogleNewsFeedUrl(newsData);
@@ -106,7 +106,7 @@ function fetchGoogleNews(newsData) {
         }
         // otherwise we'll need to go through the painful Google process :P
         try {
-            LoggerHelper.info(`Fetching Google for ${googleNewsFeedUrl}`)
+            LoggerHelper.dev(`Fetching Google for ${googleNewsFeedUrl}`)
             let response = await Utils.fetchWithTimeout(googleNewsFeedUrl);
             let rssText = await response.text()
             let news = JSON.parse(xmlParser.toJson(rssText, null))['rss']['channel']['item']
@@ -121,7 +121,7 @@ function fetchGoogleNews(newsData) {
             // we don't wanna fetch them here as we may not need them (if the cache expires for example)
             // save articles to cache.
             dbAdapter.cacheRawArticles(googleNewsFeedUrl, news)
-            // await fetchGoogleNews(newsData)
+            // await sendTopicNewsInChannel(newsData)
             await sendArticleFromCache(googleNewsFeedUrl, newsData, resolve);
         } catch (e) {
             LoggerHelper.error(e)
@@ -142,7 +142,7 @@ async function startNewsBatch() {
         for (let topicsKey in currentGuild.topics) {
             let topic = currentGuild.topics[topicsKey];
             try {
-                await fetchGoogleNews({
+                await sendTopicNewsInChannel({
                     topic: topicsKey,
                     language: topic.language,
                     hourInterval: 1,
@@ -167,12 +167,12 @@ export function startNewsHandler(discordClient) {
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
     let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
 
-    if (process.env.dev) {
-        setTimeout(async () => {
-            await startNewsBatch();
-        }, 5000)// run once every 10 seconds
-        return
-    }
+    // if (process.env.dev) {
+    //     setTimeout(async () => {
+    //         await startNewsBatch();
+    //     }, 5000)// run once every 10 seconds
+    //     return
+    // }
 
     setInterval(async () => {
         // is the current hour in the calendar?
@@ -204,7 +204,7 @@ export function startNewsHandler(discordClient) {
  * @param {any}articleMeta
  */
 function sendNudes(newsData, articleMeta) {
-    LoggerHelper.dev(`Sending article "${articleMeta.title}"`)
+    LoggerHelper.info(`Sending article "${articleMeta.title}"`)
     if (process.env.dev) {
         LoggerHelper.dev(`Not sending article in dev mode - "${articleMeta.title}"`)
         return

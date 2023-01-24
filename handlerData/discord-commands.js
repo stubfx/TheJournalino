@@ -81,9 +81,10 @@ const commands = [{
                     content: `Aight ${interaction.user.username}, ${Utils.getNameFromTopicValue(topic.value)} news will be here soon!`,
                     ephemeral: false
                 });
-                LoggerHelper.success(`Feed added: 
-                    Server: ${interaction.guild.name} (${interaction.guild.id}) 
-                    User: ${interaction.user.username}(${interaction.user.id})
+                LoggerHelper.success(`Feed added:
+                Server: ${interaction.guild.name} (${interaction.guild.id}) 
+                    Channel: ${interaction.channel.name} (${interaction.channel.id})
+                    User: ${interaction.user.username} (${interaction.user.id})
                     Topic: ${Utils.getNameFromTopicValue(topic.value)}
                     language: ${Utils.getNameFromLanguageValue(language.value)}`)
             } else {

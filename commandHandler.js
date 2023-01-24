@@ -24,7 +24,7 @@ export default async function updateCommands(client) {
     const rest = new REST({version: '10'}).setToken(process.env.discord_token);
 
     try {
-        LoggerHelper.dev(`Started refreshing ${commands.length} application (/) commands.`);
+        LoggerHelper.dev(`Started refreshing application (/) commands.`);
 
         // The put method is used to fully refresh all commands in the guild with the current set
         const data = await rest.put(
