@@ -214,7 +214,7 @@ export function startNewsHandler(discordClient) {
  */
 function sendNudes(feedUrl, newsData, articleMeta) {
     try {
-        LoggerHelper.info(`Sending article "${articleMeta.title}"`)
+        LoggerHelper.dev(`Sending article "${articleMeta.title}"`)
         if (process.env.dev) {
             LoggerHelper.dev(`Not sending article in dev mode - "${articleMeta.title}"`)
             return
