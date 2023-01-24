@@ -222,6 +222,8 @@ export function getCurrentTopicQuery(topic) {
     } else {
         // well, looks like we need a new one!
         let rndQuery = rndArrayItem(topicData.queries);
+        // replace spaces with +
+        rndQuery = rndQuery.trim().split(/ +/g).join("+")
         topicsCache[topic] = rndQuery
         return rndQuery
     }
