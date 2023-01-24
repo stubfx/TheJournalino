@@ -173,7 +173,6 @@ export function startNewsHandler(discordClient) {
     // which is at 2.45 and 14.45 in its local time
     // so, we just choose hours away from those, just to make sure.
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
-    let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
 
     if (process.env.dev) {
         setTimeout(async () => {
@@ -183,6 +182,7 @@ export function startNewsHandler(discordClient) {
     }
 
     setInterval(async () => {
+        let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
         // is the current hour in the calendar?
         let currentHour = new Date().getHours();
         if (hoursToRunAt.includes(currentHour)) {
