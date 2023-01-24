@@ -6,6 +6,17 @@ export function rndArrayItem(arr) {
     return arr[Math.floor(Math.random() * arr.length)]
 }
 
+export function isValidHttpsUrl(string) {
+    let url;
+    try {
+        url = new URL(string);
+    } catch (_) {
+        return false;
+    }
+    // no http.
+    return /*url.protocol === "http:" || */url.protocol === "https:";
+}
+
 export function getNameFromTopicValue(topicValue) {
     if ((topicsData[topicValue])) {
         return topicsData[topicValue].name

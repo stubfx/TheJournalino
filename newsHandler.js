@@ -30,7 +30,8 @@ class ArticleMetadata {
     }
 
     isComplete() {
-        return !!(this.url && this.title && this.description && this.imageLink)
+        // check if urls are fine! that's important.
+        return !!(Utils.isValidHttpsUrl(this.url) && this.title && this.description && Utils.isValidHttpsUrl(this.imageLink))
     }
 }
 
@@ -85,49 +86,56 @@ async function sendArticleFromCache(googleNewsFeedUrl, newsData) {
     return false
 }
 
+async function retrieveGoogleArticles(googleNewsFeedUrl) {
+    // otherwise we'll need to go through the painful Google process :P
+    try {
+        LoggerHelper.dev(`Fetching Google for ${googleNewsFeedUrl}`)
+        let response = await Utils.fetchWithTimeout(googleNewsFeedUrl);
+        let rssText = await response.text()
+        let news = JSON.parse(xmlParser.toJson(rssText, null))['rss']['channel']['item']
+        // if this array is not worth fetching for...
+        if (!news) {
+            // then im sry my little friend.
+            dbAdapter.addExpensiveQuery(googleNewsFeedUrl)
+            LoggerHelper.error(`Adding ${googleNewsFeedUrl} to the expensive list`)
+            return
+        } else if (news.length < 5) {
+            // we still need to add this query to the expesive list
+            dbAdapter.addExpensiveQuery(googleNewsFeedUrl)
+            LoggerHelper.error(`Adding ${googleNewsFeedUrl} to the expensive list`)
+            // but in this case we have some results, why waste them?
+            // return
+        }
+        // save articles to cache.
+        dbAdapter.cacheRawArticles(googleNewsFeedUrl, news)
+    } catch (e) {
+        LoggerHelper.error(e)
+    }
+}
+
 /**
  *
  * @param {NewsData}newsData
  */
-function sendTopicNewsInChannel(newsData) {
-    return new Promise(async resolve => {
-        // get the url first
-        const googleNewsFeedUrl = getGoogleNewsFeedUrl(newsData);
-        if (dbAdapter.isQueryTooExpensive(googleNewsFeedUrl)) {
-            // hell nay.
-            LoggerHelper.dev(`Not looking for ${googleNewsFeedUrl}`)
-            resolve()
-            return
-        }
-        // look for the article in the cache if possible
-        if (await sendArticleFromCache(googleNewsFeedUrl, newsData)) {
-            resolve()
-            return
-        }
-        // otherwise we'll need to go through the painful Google process :P
-        try {
-            LoggerHelper.dev(`Fetching Google for ${googleNewsFeedUrl}`)
-            let response = await Utils.fetchWithTimeout(googleNewsFeedUrl);
-            let rssText = await response.text()
-            let news = JSON.parse(xmlParser.toJson(rssText, null))['rss']['channel']['item']
-            // if this array is not worth fetching for...
-            if (!news || news.length < 5) {
-                // then im sry my little friend.
-                dbAdapter.addExpensiveQuery(googleNewsFeedUrl)
-                LoggerHelper.error(`Adding ${googleNewsFeedUrl} to the expensive list`)
-                resolve()
-                return
-            }
-            // we don't wanna fetch them here as we may not need them (if the cache expires for example)
-            // save articles to cache.
-            dbAdapter.cacheRawArticles(googleNewsFeedUrl, news)
-            // await sendTopicNewsInChannel(newsData)
-            await sendArticleFromCache(googleNewsFeedUrl, newsData, resolve);
-        } catch (e) {
-            LoggerHelper.error(e)
-        }
-        resolve()
-    })
+async function sendTopicNewsInChannel(newsData) {
+    // get the url first
+    const googleNewsFeedUrl = getGoogleNewsFeedUrl(newsData);
+    if (dbAdapter.isQueryTooExpensive(googleNewsFeedUrl)) {
+        // hell nay.
+        LoggerHelper.dev(`Not looking for ${googleNewsFeedUrl}`)
+        return
+    }
+    // look for the article in the cache if possible
+    if (await sendArticleFromCache(googleNewsFeedUrl, newsData)) {
+        // article has been found in and sent from cache, abort.
+        return
+    }
+    await retrieveGoogleArticles(googleNewsFeedUrl, newsData);
+    // aight, if everything was right, we should have the article in cache
+    // if not, then the query has been probably added to the expensive list.
+    // we are trying once, just to avoid stupid loops.
+    // if it doesn't go through, I'm not using lube this time.
+    await sendArticleFromCache(googleNewsFeedUrl, newsData);
 }
 
 async function startNewsBatch() {
@@ -167,12 +175,12 @@ export function startNewsHandler(discordClient) {
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
     let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
 
-    // if (process.env.dev) {
-    //     setTimeout(async () => {
-    //         await startNewsBatch();
-    //     }, 5000)// run once every 10 seconds
-    //     return
-    // }
+    if (process.env.dev) {
+        setTimeout(async () => {
+            await startNewsBatch();
+        }, 5000)// run once every 10 seconds
+        return
+    }
 
     setInterval(async () => {
         // is the current hour in the calendar?
@@ -204,46 +212,51 @@ export function startNewsHandler(discordClient) {
  * @param {any}articleMeta
  */
 function sendNudes(newsData, articleMeta) {
-    LoggerHelper.info(`Sending article "${articleMeta.title}"`)
-    if (process.env.dev) {
-        LoggerHelper.dev(`Not sending article in dev mode - "${articleMeta.title}"`)
-        return
-    }
-    // inside a command, event listener, etc.
-    const msgEmbed = new EmbedBuilder()
-        .setColor(0x0099FF)
-        .setTitle(articleMeta.title)
-        .setURL(articleMeta.url)
-        .setDescription(articleMeta.description)
-        .setAuthor({
-            name: "Free News!",
-            iconURL: 'https://freenews.stubfx.io/assets/imgs/freenews_love.png',
-            url: 'https://freenews.stubfx.io/'
-        })
+    try {
+        LoggerHelper.info(`Sending article "${articleMeta.title}"`)
+        if (process.env.dev) {
+            LoggerHelper.dev(`Not sending article in dev mode - "${articleMeta.title}"`)
+            return
+        }
+        // inside a command, event listener, etc.
+        const msgEmbed = new EmbedBuilder()
+            .setColor(0x0099FF)
+            .setTitle(articleMeta.title)
+            .setURL(articleMeta.url)
+            .setDescription(articleMeta.description)
+            .setAuthor({
+                name: "Free News!",
+                iconURL: 'https://freenews.stubfx.io/assets/imgs/freenews_love.png',
+                url: 'https://freenews.stubfx.io/'
+            })
 
-        // .setThumbnail('https://freenews.stubfx.io/icon.png')
-        // .addFields(
-        //     {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
-        //     // { name: '\u200B', value: '\u200B' },
-        //     // { name: 'Inline field title', value: 'Some value here', inline: true },
-        //     // { name: 'Inline field title', value: 'Some value here', inline: true },
-        // )
-        // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
-        .setImage(articleMeta.imageLink)
-        // .setTimestamp()
-        .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
+            // .setThumbnail('https://freenews.stubfx.io/icon.png')
+            // .addFields(
+            //     {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
+            //     // { name: '\u200B', value: '\u200B' },
+            //     // { name: 'Inline field title', value: 'Some value here', inline: true },
+            //     // { name: 'Inline field title', value: 'Some value here', inline: true },
+            // )
+            // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
+            .setImage(articleMeta.imageLink)
+            // .setTimestamp()
+            .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
 
-    if (articleMeta.author) {
-        msgEmbed.addFields(
-            // {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
-            // { name: '\u200B', value: '\u200B' },
-            {name: 'Author', value: articleMeta.author, inline: true},
-            {name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true},
-        )
+        if (articleMeta.author) {
+            msgEmbed.addFields(
+                // {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
+                // { name: '\u200B', value: '\u200B' },
+                {name: 'Author', value: articleMeta.author, inline: true},
+                {name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true},
+            )
+        }
+        client.channels.fetch(newsData.channelId)
+            .then(async channel => {
+                await channel.send({embeds: [msgEmbed]});
+            })
+            .catch(LoggerHelper.error);
+    } catch (e) {
+        // just to make sure.
+        LoggerHelper.error(e)
     }
-    client.channels.fetch(newsData.channelId)
-        .then(async channel => {
-            await channel.send({embeds: [msgEmbed]});
-        })
-        .catch(LoggerHelper.error);
 }
