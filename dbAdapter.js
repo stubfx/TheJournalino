@@ -4,6 +4,20 @@ import {rndArrayItem} from "./utils.js";
 import {findMetaEmbeds} from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
 
+/**
+ *
+ * @return {Date}
+ */
+export function getLastNewsBatchRunTime() {
+    return new Date(guildsDB.data.lastRunAt)
+}
+
+
+export async function updateLastNewsBatchRun() {
+    guildsDB.data.lastRunAt = new Date()
+    await patchGuildsData()
+}
+
 export function getAllGuilds() {
     return guildsDB.data.guilds
 }

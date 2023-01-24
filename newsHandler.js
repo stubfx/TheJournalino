@@ -132,6 +132,7 @@ function fetchGoogleNews(newsData) {
 
 async function startNewsBatch() {
     LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
+    await dbAdapter.updateLastNewsBatchRun()
     let allGuilds = dbAdapter.getAllGuilds();
     // reset cache for the next news cycle.
     dbAdapter.prepareForNewBatch();
@@ -164,9 +165,7 @@ export function startNewsHandler(discordClient) {
     // which is at 2.45 and 14.45 in its local time
     // so, we just choose hours away from those, just to make sure.
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
-    let runLastTimeAt = null;
-
-
+    let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
 
     if (process.env.dev) {
         setTimeout(async () => {
@@ -180,11 +179,8 @@ export function startNewsHandler(discordClient) {
         let currentHour = new Date().getHours();
         if (hoursToRunAt.includes(currentHour)) {
             // has the batch already run at this hour?
-            if (currentHour !== runLastTimeAt) {
+            if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
                 // if not, we are safe to run another batch.
-                // in order to prevent a rerun in the same hour, we must save the last time the batch has run
-                runLastTimeAt = currentHour
-                // then just run it.
                 await startNewsBatch();
             }
         }
