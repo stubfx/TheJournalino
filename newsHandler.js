@@ -227,7 +227,7 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             .setDescription(articleMeta.description)
             .setAuthor({
                 name: "TheJournalino!",
-                iconURL: 'https://thejournalino.com/assets/imgs/icon.png',
+                iconURL: 'https://thejournalino.com/assets/imgs/icon_128.png',
                 url: 'https://thejournalino.com/'
             })
 
