@@ -226,12 +226,12 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             .setURL(articleMeta.url)
             .setDescription(articleMeta.description)
             .setAuthor({
-                name: "Free News!",
-                iconURL: 'https://freenews.stubfx.io/assets/imgs/freenews_love.png',
-                url: 'https://freenews.stubfx.io/'
+                name: "TheJournalino!",
+                iconURL: 'https://thejournalino.com/assets/imgs/icon.png',
+                url: 'https://thejournalino.com/'
             })
 
-            // .setThumbnail('https://freenews.stubfx.io/icon.png')
+            // .setThumbnail('https://thejournalino.com/icon.png')
             // .addFields(
             //     {name: 'Google RSS feed:', value: articleMeta.googleRSSFEED},
             //     // { name: '\u200B', value: '\u200B' },
@@ -250,6 +250,10 @@ function sendNudes(feedUrl, newsData, articleMeta) {
                 {name: 'Author', value: articleMeta.author, inline: true},
                 {name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true},
             )
+        }
+
+        if (Math.random() < 0.3) {
+            msgEmbed.addFields({ name: 'Vote me on Top.gg! <3', value: 'https://top.gg/bot/1063214678874009701', inline: false })
         }
         client.channels.fetch(newsData.channelId)
             .then(async channel => {

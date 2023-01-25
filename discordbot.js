@@ -11,7 +11,7 @@ export function initBot() {
         LoggerHelper.dev(`Logged in as ${client.user.tag}!`);
         await updateCommands(client)
         startNewsHandler(client)
-        LoggerHelper.info("FreeNews ready!")
+        LoggerHelper.info("TheJournalino ready!")
     });
 
     client.on(Events.GuildCreate, guild => {

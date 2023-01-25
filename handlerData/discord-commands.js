@@ -40,7 +40,7 @@ const commands = [{
         .setDefaultMemberPermissions(PermissionsBitField.Default)
         .addSubcommand(subcommandGroup => subcommandGroup
             .setName("add")
-            .setDescription("Add an free news job to this channel")
+            .setDescription("Add an TheJournalino job to this channel")
             .addStringOption(builder => builder
                 .setName("topic")
                 .setDescription("The topic you want the news for")
@@ -55,7 +55,7 @@ const commands = [{
             )
         ).addSubcommand(subcommandGroup => subcommandGroup
             .setName("remove")
-            .setDescription("Remove an free news job to this channel")
+            .setDescription("Remove an TheJournalino job to this channel")
             .addStringOption(builder => builder
                 .setName("topic")
                 .setDescription("The topic you want the news for")
@@ -97,11 +97,11 @@ const commands = [{
         } else if (subcommand === "remove") {
             let topic = interaction.options.get('topic');
             let removed = false;
-            let successContent = "You wont receive free news in this channel anymore.";
-            let errorContent = "This channel is not listed for any tipe of free news";
+            let successContent = "You wont receive TheJournalino in this channel anymore.";
+            let errorContent = "This channel is not listed for any tipe of TheJournalino";
             if (topic.value !== "all") {
                 let codeTopicNameText = `**${Utils.getNameFromTopicValue(topic.value)}**`;
-                successContent = `You wont receive free news about ${codeTopicNameText} in this channel anymore.`;
+                successContent = `You wont receive TheJournalino about ${codeTopicNameText} in this channel anymore.`;
                 errorContent = `I'm sorry but looks like that this channel is not listed for ${codeTopicNameText} news.`;
             }
             removed = await dbAdapter.removeNewsChannel(interaction.channel, topic.value !== 'all' ? topic.value : null);
@@ -127,11 +127,11 @@ const commands = [{
         const exampleEmbed = new EmbedBuilder()
             .setColor(0x0099FF)
             .setAuthor({
-                name: "Free News",
+                name: "TheJournalino",
                 iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
-                url: "https://freenews.stubfx.io/"
+                url: "https://thejournalino.com/"
             })
-            .setTitle("Free News Help!")
+            .setTitle("TheJournalino Help!")
             // .setURL(articleMeta.url)
             .setDescription("Are you looking for Gaming leaks? Criminals? Tech news?\nOr anyhing else?\n" +
                 "I got you! \nThe only command you need is: \n\n" +
@@ -139,7 +139,7 @@ const commands = [{
                 "try: \n\n" +
                 "/news add Gaming English\n\n" +
                 "You will receive news relative to your topic soon after running the command, however it may take up to 3 hours sometimes!\n\n")
-            .setThumbnail('https://freenews.stubfx.io/icon.png')
+            .setThumbnail('https://thejournalino.com/icon_500.png')
             // .addFields(
             //     {name: '/news', value: 'test'},
             //     { name: '\u200B', value: '\u200B' },
