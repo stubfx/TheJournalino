@@ -166,7 +166,7 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
     const cachedDate = new Date(cachedDataItem.dateFetched)
     let diff = (currentDate.getTime() - cachedDate.getTime()) / (1000 * 60 * 60 * 24);
     if (diff >= 3) {
-        LoggerHelper.error(`CACHE IS OLD FOR ${queryString}`)
+        LoggerHelper.error(`INVALID CACHE FOR ${queryString}`)
         // in this case 3 days or more have passed, this cache is not valid anymore,
         // we need to wait for somebody to update it.
         return null
