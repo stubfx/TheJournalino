@@ -37,8 +37,10 @@ body {
 @keyframes spinner {
     from {
         transform: rotate(0deg);
+        scale: 100%;
     }
     to {
         transform: rotate(360deg);
+        scale: 200%;
     }
 }
