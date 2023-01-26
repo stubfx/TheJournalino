@@ -239,6 +239,9 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             //     // { name: 'Inline field title', value: 'Some value here', inline: true },
             // )
             // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
+            // .setImage(articleMeta.imageLink)
+            // "https://ogden_images.s3.amazonaws.com/www.thealpenanews.com/images/2023/01/25214647/Alpena-basketball-Easton-Srebnik-vs-Sault-Ste-Marie-WEB-667x500.jpg"
+            // "https://ogden_images.s3.amazonaws.com/www.thealpenanews.com/images/2023/01/25214647/Alpena-basketball-Easton-Srebnik-vs-Sault-Ste-Marie-WEB-667x500.jpg"
             .setImage(articleMeta.imageLink)
             // .setTimestamp()
             .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
@@ -258,8 +261,12 @@ function sendNudes(feedUrl, newsData, articleMeta) {
         client.channels.fetch(newsData.channelId)
             .then(async channel => {
                 await channel.send({embeds: [msgEmbed]});
-            })
-            .catch(LoggerHelper.error);
+            }).catch(reason => {
+                LoggerHelper.error(feedUrl)
+                LoggerHelper.error(articleMeta.url)
+                LoggerHelper.error(articleMeta.imageLink)
+                LoggerHelper.error(reason)
+        });
     } catch (e) {
         // just to make sure.
         LoggerHelper.error(`ChannelID: ${newsData.channelId}`)

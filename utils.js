@@ -14,7 +14,8 @@ export function isValidHttpsUrl(string) {
         return false;
     }
     // no http.
-    return /*url.protocol === "http:" || */url.protocol === "https:";
+    // !url.host.includes("_") IS FOR DISCORD PURPOSES ONLY.
+    return /*url.protocol === "http:" || */url.protocol === "https:" || !url.host.includes("_");
 }
 
 export function getNameFromTopicValue(topicValue) {
