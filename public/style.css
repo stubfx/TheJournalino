@@ -4,6 +4,8 @@ body {
     background-color: #1e2124 !important;
     font-family: 'Roboto', sans-serif !important;
     color: white !important;
+    height: 100vh !important;
+    overflow: hidden;
 }
 
 .btn.btn-primary {
@@ -40,7 +42,11 @@ body {
 }
 
 .header-logo {
-    width: 200px;
+    width: 200px !important;
+}
+
+.header-logo:hover {
+    animation: angry 200s 1 linear;
 }
 
 @keyframes spinner {
@@ -51,5 +57,16 @@ body {
     to {
         transform: rotate(360deg);
         scale: 200%;
+    }
+}
+
+@keyframes angry {
+    from {
+        scale: 100%;
+        filter:hue-rotate(0deg);
+    }
+    to {
+        scale: 2000%;
+        filter:hue-rotate(360deg);
     }
 }
