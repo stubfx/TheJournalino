@@ -15,9 +15,16 @@ body {
     height: 60px;
 }
 
-.btn:hover {
+.btn.btn-primary:hover {
     border: 1px solid white !important;
     background-color: #7289da !important;
+
+    animation: spinner 100ms infinite linear;
+}
+
+.btn.btn-success:hover {
+    border: 1px solid white !important;
+    background-color: red !important;
 
     animation: spinner 100ms infinite linear;
 }
