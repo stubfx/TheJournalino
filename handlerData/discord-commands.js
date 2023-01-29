@@ -88,12 +88,12 @@ const commands = [{
                     content: `Aight ${interaction.user.username}, ${Utils.getNameFromTopicValue(topic.value)} news will be here soon!`,
                     ephemeral: false
                 });
-                LoggerHelper.success(`Feed added:
-                Server: ${interaction.guild.name} (${interaction.guild.id}) 
-                    Channel: ${interaction.channel.name} (${interaction.channel.id})
-                    User: ${interaction.user.username} (${interaction.user.id})
-                    Topic: ${Utils.getNameFromTopicValue(topic.value)}
-                    language: ${Utils.getNameFromLanguageValue(language.value)}`)
+                LoggerHelper.success(`Feed added:`,
+                    `Server: ${interaction.guild.name} (${interaction.guild.id}) `,
+                    `Channel: ${interaction.channel.name} (${interaction.channel.id})`,
+                    `User: ${interaction.user.username} (${interaction.user.id})`,
+                    `Topic: ${Utils.getNameFromTopicValue(topic.value)}`,
+                    `language: ${Utils.getNameFromLanguageValue(language.value)}`)
             } else {
                 // no permissions in this channel, pls try again.
                 await interaction.reply({

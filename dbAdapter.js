@@ -35,7 +35,9 @@ export async function removeNewsChannel(channel, topic) {
             if (currentChannel) {
                 if (!topic) {
                     // if there is no topic, delete all topics from this channel.
-                    currentChannel.topics = []
+                    // currentChannel.topics = []
+                    // actually... just delete the channel.
+                    delete channels[channel.id]
                     found = true
                 } else {
                     // topic is specific! Delete it only if the channel matches!

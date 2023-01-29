@@ -7,6 +7,7 @@
 /**
  * @typedef NewsData
  * @property {string}topic
+ * @property {string}guildId
  * @property {string}channelId
  * @property {string}language
  * @property {number}hourInterval

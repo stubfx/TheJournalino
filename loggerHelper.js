@@ -1,17 +1,6 @@
-let client = null
+import {EmbedBuilder} from "discord.js";
 
-function getSanitizedLog(data) {
-    try {
-        return data.split("\n")
-            .map(s => s.trim())
-            // If you want to remove empty lines.
-            .filter(Boolean)
-            .join("\n");
-    } catch (e) {
-        error(data)
-        return data
-    }
-}
+let client = null
 
 function getSanitizedSuggestion(data) {
     try {
@@ -26,26 +15,28 @@ export function init(discordClient) {
     client = discordClient
 }
 
-export function error(data, consoleOnly = false) {
-    console.error(data)
-    if (!consoleOnly) {
-        client.channels.fetch(process.env.discord_log_channel_id)
-            .then(async channel => {
-                // await channel.send({embeds: [exampleEmbed]});
-                await channel.send(`:red_circle:\`${data.toString()}\``);
-            })
-            .catch(console.error);
-    }
-}
-
-export function success(data) {
-    // clear data in case of template string multiline
-    let log = getSanitizedLog(data)
-    console.info(log)
+export function error(...errors) {
+    console.error(errors)
     client.channels.fetch(process.env.discord_log_channel_id)
         .then(async channel => {
             // await channel.send({embeds: [exampleEmbed]});
-            await channel.send(`:green_circle:\`${log.toString()}\``);
+            await channel.send({embeds: [getLogEmbed(0xED4245, errors)]});
+        })
+        .catch(console.error);
+}
+
+export function consoleError(data) {
+    console.error(data)
+}
+
+export function success(...data) {
+    // clear data in case of template string multiline
+    console.info(data)
+    client.channels.fetch(process.env.discord_log_channel_id)
+        .then(async channel => {
+            // await channel.send({embeds: [exampleEmbed]});
+            // await channel.send(`:green_circle:\`${log.toString()}\``);
+            await channel.send({embeds: [getLogEmbed(0x57F287, data)]});
         })
         .catch(console.error);
 }
@@ -62,16 +53,42 @@ export function suggestion(data, toSanitize) {
         .catch(console.error);
 }
 
-export function info(data) {
+export function info(...data) {
     console.log(data)
     client.channels.fetch(process.env.discord_log_channel_id)
         .then(async channel => {
             // await channel.send({embeds: [exampleEmbed]});
-            await channel.send(`:blue_circle:\`${data}\``);
+            // await channel.send(`\`${data}\``);
+            await channel.send({embeds: [getLogEmbed(0x3498DB, data)]});
         })
         .catch(console.error);
 }
 
 export function dev(data) {
     console.log(data);
+}
+
+/**
+ * @param {number}HexColor
+ * @param {Array<any>}errors
+ * @return {EmbedBuilder}
+ */
+function getLogEmbed(HexColor, errors) {
+    /**
+     *
+     * @type {string}
+     */
+    let log = ""
+    for (let data of errors) {
+        try {
+            console.log(data)
+            log += (data.toString() + "\n")
+        } catch (e) {
+            log += `"ERROR" : ${e}`
+        }
+    }
+    console.log(log)
+    return new EmbedBuilder()
+        .setColor(HexColor)
+        .setDescription(log)
 }

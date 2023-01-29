@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
-import {EmbedBuilder} from "discord.js";
+import {DiscordAPIError, EmbedBuilder} from "discord.js";
 import * as dbAdapter from "./dbAdapter.js";
 import * as LoggerHelper from "./loggerHelper.js";
 import * as Utils from "./utils.js";
@@ -68,8 +68,8 @@ export async function findMetaEmbeds(rawGoogleArticle) {
             let imageLink = $('meta[property="og:image"]').attr('content')
             resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
         } catch (e) {
-            LoggerHelper.error(`Fetching ${url}`, true)
-            LoggerHelper.error(e, true);
+            LoggerHelper.consoleError(`Fetching ${url}`)
+            LoggerHelper.consoleError(e);
             resolve(null)
         }
     })
@@ -142,17 +142,21 @@ async function startNewsBatch() {
     LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
     await dbAdapter.updateLastNewsBatchRun()
     let allGuilds = dbAdapter.getAllGuilds();
+    let log = []
     // reset cache for the next news cycle.
     dbAdapter.prepareForNewBatch();
-    for (let allGuildsKey in allGuilds) {
-        let currentGuild = allGuilds[allGuildsKey]
-        LoggerHelper.info(`Running for ${currentGuild.name}`)
+    for (let guildId in allGuilds) {
+        let currentGuild = allGuilds[guildId]
+        // LoggerHelper.info(`Running for ${currentGuild.name}`)
+        log.push(`Running for ${currentGuild.name}`)
         let channels = currentGuild.channels
         for (let channelId in channels) {
             let topics = channels[channelId].topics
+            log.push(topics.reduce((previousValue, currentValue) => previousValue + currentValue.topic, ""))
             for (let currentTopic of topics) {
                 try {
                     await sendTopicNewsInChannel({
+                        guildId: guildId,
                         topic: currentTopic.topic,
                         language: currentTopic.language,
                         hourInterval: 1,
@@ -160,12 +164,12 @@ async function startNewsBatch() {
                     })
                 } catch (e) {
                     // in case of error, keep going.
-                    LoggerHelper.error(`Fatal error encountered for ${currentGuild.name}(${allGuildsKey}) - topic: ${topicsKey} - language: ${topic.language}`)
-                    LoggerHelper.error(e)
+                    LoggerHelper.error(`Fatal error encountered for ${currentGuild.name}(${guildId}) - topic: ${topicsKey} - language: ${topic.language}`, e)
                 }
             }
         }
     }
+    LoggerHelper.info(...log)
     LoggerHelper.info('------------------------ DONE ------------------------')
     await dbAdapter.patchData()
 }
@@ -220,7 +224,7 @@ function sendNudes(feedUrl, newsData, articleMeta) {
         LoggerHelper.dev(`Sending article "${articleMeta.title}"`)
         if (process.env.dev) {
             LoggerHelper.dev(`Not sending article in dev mode - "${articleMeta.title}"`)
-            return
+            // return
         }
         // inside a command, event listener, etc.
         const msgEmbed = new EmbedBuilder()
@@ -269,16 +273,22 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             .then(async channel => {
                 await channel.send({embeds: [msgEmbed]});
             }).catch(reason => {
-            LoggerHelper.error(feedUrl)
-            LoggerHelper.error(`ChannelID: ${newsData.channelId}`)
-            LoggerHelper.error(articleMeta.url)
-            LoggerHelper.error(articleMeta.imageLink)
-            LoggerHelper.error(reason)
+            const skipError = [
+                // DiscordAPIError[50013]: Missing Permissions
+                50013,
+                // DiscordAPIError[50001]: Missing Access
+                50001
+            ]
+            if (reason instanceof DiscordAPIError) {
+                LoggerHelper.error(reason, `GuildID: ${newsData.guildId}`, `ChannelID: ${newsData.channelId}`)
+                // log the error details, only if is not a common one.
+                if (!skipError.includes(reason.code)) {
+                    LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
+                }
+            }
         });
     } catch (e) {
         // just to make sure.
-        LoggerHelper.error(`ChannelID: ${newsData.channelId}`)
-        LoggerHelper.error(feedUrl)
-        LoggerHelper.error(e)
+        LoggerHelper.error(`ChannelID: ${newsData.channelId}`, feedUrl, e)
     }
 }
