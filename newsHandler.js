@@ -5,6 +5,7 @@ import * as dbAdapter from "./dbAdapter.js";
 import * as LoggerHelper from "./loggerHelper.js";
 import * as Utils from "./utils.js";
 import {getPhrase} from "./datamodels/footer_labels.js";
+import {getCTAField} from "./datamodels/news_random_cta.js";
 
 let client = null
 
@@ -264,11 +265,7 @@ function sendNudes(feedUrl, newsData, articleMeta) {
         }
 
         if (Math.random() < 0.3) {
-            msgEmbed.addFields({
-                name: 'Vote me on Top.gg! <3',
-                value: 'https://top.gg/bot/1063214678874009701',
-                inline: false
-            })
+            msgEmbed.addFields(getCTAField())
         }
         client.channels.fetch(newsData.channelId)
             .then(async channel => {
