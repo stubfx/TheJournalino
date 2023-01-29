@@ -7,7 +7,7 @@ import * as discordBot from "./discordbot.js";
  */
 import path from "path";
 // Require the fastify framework and instantiate it
-import fastify0 from "fastify";
+import Fastify from 'fastify'
 
 
 import fastifyStatic from "@fastify/static";
@@ -16,16 +16,19 @@ import {fileURLToPath} from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const fastify = fastify0({
-    // Set this to true for detailed logging:
-    logger: false,
-});
+const fastify = Fastify({
+    logger: false
+})
 
 // Setup our static files
 fastify.register(fastifyStatic, {
     root: path.join(__dirname, "public"),
     prefix: "/", // optional: default '/'
 });
+
+fastify.get("/help", async (request, reply) => {
+    reply.redirect("/help.html")
+})
 
 // Run the server and report out to the logs
 fastify.listen(

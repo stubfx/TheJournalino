@@ -4,6 +4,7 @@ import {DiscordAPIError, EmbedBuilder} from "discord.js";
 import * as dbAdapter from "./dbAdapter.js";
 import * as LoggerHelper from "./loggerHelper.js";
 import * as Utils from "./utils.js";
+import {getPhrase} from "./datamodels/footer_labels.js";
 
 let client = null
 
@@ -251,7 +252,7 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             // "https://ogden_images.s3.amazonaws.com/www.thealpenanews.com/images/2023/01/25214647/Alpena-basketball-Easton-Srebnik-vs-Sault-Ste-Marie-WEB-667x500.jpg"
             .setImage(articleMeta.imageLink)
             // .setTimestamp()
-            .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
+            .setFooter({text: getPhrase()/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
 
         if (articleMeta.author) {
             msgEmbed.addFields(
