@@ -26,9 +26,16 @@ body {
     animation: spinner 100ms infinite linear;
 }
 
-.btn.btn-success:hover {
+.support-server-button:hover {
     border: 1px solid white !important;
     background-color: red !important;
+
+    animation: spinner 100ms infinite linear;
+}
+
+.help-button:hover {
+    border: 1px solid white !important;
+    background-color: #8c00ff !important;
 
     animation: spinner 100ms infinite linear;
 }
