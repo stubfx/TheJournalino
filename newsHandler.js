@@ -20,6 +20,10 @@ class ArticleMetadata {
         this.author = author
     }
 
+    /**
+     * not used yet, may be useful later while working with multithreading
+     * @return {number}
+     */
     hashCode() {
         let string = this.toString()
         let hash = 0;
@@ -33,7 +37,10 @@ class ArticleMetadata {
 
     isComplete() {
         // check if urls are fine! that's important.
-        return !!(Utils.isValidHttpsUrl(this.url) && this.title && this.description && Utils.isValidHttpsUrl(this.imageLink))
+        return !!(Utils.isValidHttpsUrl(this.url)
+            && Utils.isStringLengthLessThan(this.title, 256)
+            && Utils.isStringLengthLessThan(this.description, 4096)
+            && Utils.isValidHttpsUrl(this.imageLink))
     }
 }
 
@@ -283,6 +290,8 @@ function sendNudes(feedUrl, newsData, articleMeta) {
                 if (!skipError.includes(reason.code)) {
                     LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
                 }
+            } else {
+                LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
             }
         });
     } catch (e) {

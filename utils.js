@@ -18,6 +18,13 @@ export function isValidHttpsUrl(string) {
     return /*url.protocol === "http:" || */url.protocol === "https:" || !url.host.includes("_");
 }
 
+export function isStringLengthLessThan(string, length) {
+    if (string instanceof String) {
+        return string.length < length
+    }
+    return false
+}
+
 export function getNameFromTopicValue(topicValue) {
     if ((topicsData[topicValue])) {
         return topicsData[topicValue].name
