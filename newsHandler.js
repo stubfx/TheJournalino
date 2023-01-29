@@ -259,16 +259,21 @@ function sendNudes(feedUrl, newsData, articleMeta) {
         }
 
         if (Math.random() < 0.3) {
-            msgEmbed.addFields({ name: 'Vote me on Top.gg! <3', value: 'https://top.gg/bot/1063214678874009701', inline: false })
+            msgEmbed.addFields({
+                name: 'Vote me on Top.gg! <3',
+                value: 'https://top.gg/bot/1063214678874009701',
+                inline: false
+            })
         }
         client.channels.fetch(newsData.channelId)
             .then(async channel => {
                 await channel.send({embeds: [msgEmbed]});
             }).catch(reason => {
-                LoggerHelper.error(feedUrl)
-                LoggerHelper.error(articleMeta.url)
-                LoggerHelper.error(articleMeta.imageLink)
-                LoggerHelper.error(reason)
+            LoggerHelper.error(feedUrl)
+            LoggerHelper.error(`ChannelID: ${newsData.channelId}`)
+            LoggerHelper.error(articleMeta.url)
+            LoggerHelper.error(articleMeta.imageLink)
+            LoggerHelper.error(reason)
         });
     } catch (e) {
         // just to make sure.
