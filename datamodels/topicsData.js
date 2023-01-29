@@ -131,6 +131,15 @@ export default {
             "lgbt rights"
         ]
     },
+    "twitch": {
+        name: 'Twitch',
+        queries: [
+            "Twitch.tv news",
+            "Twitch.tv leaks",
+            "Twitch.tv banned",
+            "Twitch.tv new feature"
+        ]
+    },
     "potato": {
         name: 'Potato',
         queries: [
@@ -139,5 +148,5 @@ export default {
             "potato dish",
             "potato battery"
         ]
-    }
+    },
 }
