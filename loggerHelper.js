@@ -2,13 +2,25 @@ import {EmbedBuilder} from "discord.js";
 
 let client = null
 
-function getSanitizedSuggestion(data) {
-    try {
-        return "Suggestion: " + data.replace(/[^a-zA-Z ]/g, "[%]")
-    } catch (e) {
-        error(e)
-        return null
+/**
+ *
+ * @param logArray
+ * @return {Array<any>}
+ */
+function getSanitizedLog(logArray) {
+    /**
+     *
+     * @type {Array<string>}
+     */
+    let log = []
+    for (let data of logArray) {
+        try {
+            log.push(data.toString().replace(/[^a-zA-Z0-9: ()?!]/g, "[%]"))
+        } catch (e) {
+            log.push(`"SANITIZE ERROR" : ${e}`)
+        }
     }
+    return log
 }
 
 export function init(discordClient) {
@@ -41,14 +53,14 @@ export function success(...data) {
         .catch(console.error);
 }
 
-export function suggestion(data, toSanitize) {
-    // clear data in case of template string multiline
-    let log = data + "\n" + getSanitizedSuggestion(toSanitize)
+export function suggestion(...data) {
+    let log = getSanitizedLog(data)
     console.info(log)
     client.channels.fetch(process.env.discord_log_suggestion_channel_id)
         .then(async channel => {
             // await channel.send({embeds: [exampleEmbed]});
-            await channel.send(`:green_circle:\`${log.toString()}\``);
+            // await channel.send(`:green_circle:\`${log.toString()}\``);
+            await channel.send({embeds: [getLogEmbed(0x57F287, log)]});
         })
         .catch(console.error);
 }
@@ -81,13 +93,11 @@ function getLogEmbed(HexColor, errors) {
     let log = ""
     for (let data of errors) {
         try {
-            console.log(data)
             log += (data.toString() + "\n")
         } catch (e) {
             log += `"ERROR" : ${e}`
         }
     }
-    console.log(log)
     return new EmbedBuilder()
         .setColor(HexColor)
         .setDescription(log)

@@ -28,13 +28,6 @@ function getTopicDataAsCommandChoices() {
 
 const languages = locales
 
-function getInteractionDetailsString(interaction) {
-    return "Feed added:" +
-        "\n" + `Server: ${interaction.guild.name} (${interaction.guild.id})` +
-        "\n" + `Channel: ${interaction.channel.name} (${interaction.channel.id})` +
-        "\n" + `User: ${interaction.user.username} (${interaction.user.id})`;
-}
-
 /**
  *
  @type {Array<{data: SlashCommandBuilder, execute(Client, ChatInputCommandInteraction): Promise<void>}>}
@@ -171,14 +164,16 @@ const commands = [{
         .setDescription("Send me a suggestion to improve myself!")
         .addStringOption(builder => builder
             .setName("suggestion")
-            .setDescription("?")
+            .setDescription("Your suggestion, I guess?")
             .setMaxLength(256)
             .setRequired(true)
         ),
     async execute(client, interaction) {
         // inside a command, event listener, etc.
-        LoggerHelper.suggestion(getInteractionDetailsString(interaction),
-            interaction.options.get('suggestion').value)
+        LoggerHelper.suggestion(`Server: ${interaction.guild.name} (${interaction.guild.id})`,
+            `Channel: ${interaction.channel.name} (${interaction.channel.id})`,
+            `User: ${interaction.user.username} (${interaction.user.id})`,
+            `Suggestion: ${interaction.options.get('suggestion').value}`)
         await interaction.reply({content: "Got it, thanks!", ephemeral: true});
     }
 }]
