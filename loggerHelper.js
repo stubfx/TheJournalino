@@ -13,6 +13,15 @@ function getSanitizedLog(data) {
     }
 }
 
+function getSanitizedSuggestion(data) {
+    try {
+        return "Suggestion: " + data.replace(/[^a-zA-Z ]/g, "[%]")
+    } catch (e) {
+        error(e)
+        return null
+    }
+}
+
 export function init(discordClient) {
     client = discordClient
 }
@@ -32,8 +41,20 @@ export function error(data, consoleOnly = false) {
 export function success(data) {
     // clear data in case of template string multiline
     let log = getSanitizedLog(data)
-    console.error(log)
+    console.info(log)
     client.channels.fetch(process.env.discord_log_channel_id)
+        .then(async channel => {
+            // await channel.send({embeds: [exampleEmbed]});
+            await channel.send(`:green_circle:\`${log.toString()}\``);
+        })
+        .catch(console.error);
+}
+
+export function suggestion(data, toSanitize) {
+    // clear data in case of template string multiline
+    let log = data + "\n" + getSanitizedSuggestion(toSanitize)
+    console.info(log)
+    client.channels.fetch(process.env.discord_log_suggestion_channel_id)
         .then(async channel => {
             // await channel.send({embeds: [exampleEmbed]});
             await channel.send(`:green_circle:\`${log.toString()}\``);

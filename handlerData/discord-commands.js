@@ -28,6 +28,13 @@ function getTopicDataAsCommandChoices() {
 
 const languages = locales
 
+function getInteractionDetailsString(interaction) {
+    return "Feed added:" +
+        "\n" + `Server: ${interaction.guild.name} (${interaction.guild.id})` +
+        "\n" + `Channel: ${interaction.channel.name} (${interaction.channel.id})` +
+        "\n" + `User: ${interaction.user.username} (${interaction.user.id})`;
+}
+
 /**
  *
  @type {Array<{data: SlashCommandBuilder, execute(Client, ChatInputCommandInteraction): Promise<void>}>}
@@ -157,6 +164,22 @@ const commands = [{
         //     // url: article.source.url
         // })
         await interaction.reply({embeds: [exampleEmbed], ephemeral: false});
+    }
+}, {
+    data: new SlashCommandBuilder()
+        .setName('suggestion')
+        .setDescription("Send me a suggestion to improve myself!")
+        .addStringOption(builder => builder
+            .setName("suggestion")
+            .setDescription("?")
+            .setMaxLength(256)
+            .setRequired(true)
+        ),
+    async execute(client, interaction) {
+        // inside a command, event listener, etc.
+        LoggerHelper.suggestion(getInteractionDetailsString(interaction),
+            interaction.options.get('suggestion').value)
+        await interaction.reply({content: "Got it, thanks!", ephemeral: true});
     }
 }]
 export default commands;

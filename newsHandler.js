@@ -147,19 +147,22 @@ async function startNewsBatch() {
     for (let allGuildsKey in allGuilds) {
         let currentGuild = allGuilds[allGuildsKey]
         LoggerHelper.info(`Running for ${currentGuild.name}`)
-        for (let topicsKey in currentGuild.topics) {
-            let topic = currentGuild.topics[topicsKey];
-            try {
-                await sendTopicNewsInChannel({
-                    topic: topicsKey,
-                    language: topic.language,
-                    hourInterval: 1,
-                    channelId: topic.channelId
-                })
-            } catch (e) {
-                // in case of error, keep going.
-                LoggerHelper.error(`Fatal error encountered for ${currentGuild.name}(${allGuildsKey}) - topic: ${topicsKey} - language: ${topic.language}`)
-                LoggerHelper.error(e)
+        let channels = currentGuild.channels
+        for (let channelId in channels) {
+            let topics = channels[channelId].topics
+            for (let currentTopic of topics) {
+                try {
+                    await sendTopicNewsInChannel({
+                        topic: currentTopic.topic,
+                        language: currentTopic.language,
+                        hourInterval: 1,
+                        channelId: channelId
+                    })
+                } catch (e) {
+                    // in case of error, keep going.
+                    LoggerHelper.error(`Fatal error encountered for ${currentGuild.name}(${allGuildsKey}) - topic: ${topicsKey} - language: ${topic.language}`)
+                    LoggerHelper.error(e)
+                }
             }
         }
     }

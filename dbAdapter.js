@@ -4,6 +4,8 @@ import {rndArrayItem} from "./utils.js";
 import {findMetaEmbeds} from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
 
+const DEFAULT_TOPIC = "top";
+
 /**
  *
  * @return {Date}
@@ -27,29 +29,33 @@ export async function removeNewsChannel(channel, topic) {
     let newsGuilds = guildsDB.data.guilds
     let currentNewsGuild = newsGuilds[channel.guild.id];
     if (currentNewsGuild) {
-        if (!topic) {
-            // if there is no topic, delete all topics from this channel.
-            for (let topicsKey in currentNewsGuild.topics) {
-                let topic = currentNewsGuild.topics[topicsKey]
-                if (topic.channelId === channel.id) {
-                    // in this case the topic doesn't matter, just remove it.
-                    delete currentNewsGuild.topics[topicsKey]
-                }
-                found = true
-            }
-        } else {
-            // topic is specific! Delete it only if the channel matches!
-            if (currentNewsGuild.topics) {
-                // does the topic match the channel?
-                if (currentNewsGuild.topics[topic] && currentNewsGuild.topics[topic].channelId === channel.id) {
-                    // then it exists, remove it!
-                    delete currentNewsGuild.topics[topic]
+        let channels = currentNewsGuild.channels
+        if (channels) {
+            let currentChannel = channels[channel.id]
+            if (currentChannel) {
+                if (!topic) {
+                    // if there is no topic, delete all topics from this channel.
+                    currentChannel.topics = []
                     found = true
+                } else {
+                    // topic is specific! Delete it only if the channel matches!
+                    if (currentChannel.topics) {
+                        // does the topic match the channel?
+                        // so we keep everything except for the specified topic
+                        currentChannel.topics = currentChannel.topics.filter(value => {
+                            // if you find the element
+                            found = value.topic === topic
+                            // just say that it needs to be removed.
+                            return !found
+                        })
+                    }
                 }
             }
         }
     }
-    await patchData()
+    if (found) {
+        await patchData()
+    }
     return found
 }
 
@@ -62,16 +68,24 @@ export async function addNewsGuild(guild, channelId, topic, language) {
     let newsGuilds = guildsDB.data.guilds
     let currentNewsGuild = newsGuilds[guild.id]
     if (!currentNewsGuild) {
-        currentNewsGuild = {name: guild.name, date: new Date(), topics: {}}
+        currentNewsGuild = {name: guild.name, date: new Date(), channels: []}
         newsGuilds[guild.id] = currentNewsGuild
     }
-    let currentTopic = currentNewsGuild.topics[topic]
-    if (!currentTopic) {
-        currentTopic = {}
-        currentNewsGuild.topics[topic] = currentTopic
+    let currentChannel = currentNewsGuild.channels[channelId];
+    if (!currentChannel) {
+        currentChannel = {topics: []}
+    }
+    let newTopic = {
+        topic: topic,
+        language: language,
+        date: new Date()
+    }
+    let found = currentChannel.topics.find(value => value.topic === topic && value.language === language);
+    if (!found) {
+        currentChannel.topics.push(newTopic)
     }
     // time to push data into it.
-    currentNewsGuild.topics[topic] = {channelId: channelId, language: language, date: new Date()}
+    currentNewsGuild.channels[channelId] = currentChannel
     await patchData()
 }
 
@@ -213,7 +227,7 @@ export function getCurrentTopicQuery(topic) {
     // or the topic has just been removed :/
     if (!topicData) {
         LoggerHelper.error(`Topic Error: ${topic} --- This topic does not exist!`)
-        topicData = topicsData['top']
+        topicData = topicsData[DEFAULT_TOPIC]
     }
     // check in the cache!
     if (topicsCache[topic]) {
