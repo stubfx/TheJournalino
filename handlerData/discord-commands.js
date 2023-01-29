@@ -1,7 +1,6 @@
 import {
     ChatInputCommandInteraction,
     Client,
-    EmbedBuilder,
     PermissionFlagsBits,
     PermissionsBitField,
     SlashCommandBuilder,
@@ -127,39 +126,8 @@ const commands = [{
     // .setDefaultMemberPermissions(PermissionsBitField.Default),
     async execute(client, interaction) {
         // inside a command, event listener, etc.
-        const exampleEmbed = new EmbedBuilder()
-            .setColor(0x0099FF)
-            .setAuthor({
-                name: "TheJournalino",
-                iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
-                url: "https://thejournalino.com/"
-            })
-            .setTitle("TheJournalino Help!")
-            // .setURL(articleMeta.url)
-            .setDescription("Are you looking for Gaming leaks? Criminals? Tech news?\nOr anyhing else?\n" +
-                "I got you! \nThe only command you need is: \n\n" +
-                "**/news**\n\n" +
-                "try: \n\n" +
-                "/news add Gaming English\n\n" +
-                "You will receive news relative to your topic soon after running the command, however it may take up to 3 hours sometimes!\n\n")
-            .setThumbnail('https://thejournalino.com/icon_500.png')
-            // .addFields(
-            //     {name: '/news', value: 'test'},
-            //     { name: '\u200B', value: '\u200B' },
-            //     { name: 'Inline field title', value: 'Some value here', inline: true },
-            //     { name: 'Inline field title', value: 'Some value here', inline: true },
-            // )
-            // .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
-            // .setImage(articleMeta.imageLink)
-            // .setTimestamp()
-            .setFooter({text: 'Add me to your server! Help me reach more people <3'/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
-
-        // exampleEmbed.setAuthor({
-        //     name: "cacca",
-        //     iconURL: 'https://images.unsplash.com/photo-1566378246598-5b11a0d486cc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80',
-        //     // url: article.source.url
-        // })
-        await interaction.reply({embeds: [exampleEmbed], ephemeral: false});
+        await interaction.reply({content: "Here you can find some help " +
+                "(assuming that i remember to keep it up to date)\nhttps://thejournalino.com/help", ephemeral: false});
     }
 }, {
     public: true,
