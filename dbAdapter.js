@@ -51,6 +51,10 @@ export async function removeNewsChannel(channel, topic) {
                             return !found
                         })
                     }
+                    if (currentChannel.topics.length === 0) {
+                        // actually... just delete the channel.
+                        delete channels[channel.id]
+                    }
                 }
             }
         }
