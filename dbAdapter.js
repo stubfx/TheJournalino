@@ -74,7 +74,7 @@ export async function addNewsGuild(guild, channelId, topic, language) {
     let newsGuilds = guildsDB.data.guilds
     let currentNewsGuild = newsGuilds[guild.id]
     if (!currentNewsGuild) {
-        currentNewsGuild = {name: guild.name, date: new Date(), channels: []}
+        currentNewsGuild = {name: guild.name, date: new Date(), channels: {}}
         newsGuilds[guild.id] = currentNewsGuild
     }
     let currentChannel = currentNewsGuild.channels[channelId];
