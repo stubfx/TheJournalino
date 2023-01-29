@@ -181,12 +181,12 @@ export function startNewsHandler(discordClient) {
     // so, we just choose hours away from those, just to make sure.
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
 
-    if (process.env.dev) {
-        setTimeout(async () => {
-            await startNewsBatch();
-        }, 5000)// run once every 10 seconds
-        return
-    }
+    // if (process.env.dev) {
+    //     setTimeout(async () => {
+    //         await startNewsBatch();
+    //     }, 5000)// run once every 10 seconds
+    //     return
+    // }
 
     setInterval(async () => {
         let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();

@@ -1,6 +1,7 @@
 import {
     ChatInputCommandInteraction,
-    Client, EmbedBuilder,
+    Client,
+    EmbedBuilder,
     PermissionFlagsBits,
     PermissionsBitField,
     SlashCommandBuilder,
@@ -30,9 +31,10 @@ const languages = locales
 
 /**
  *
- @type {Array<{data: SlashCommandBuilder, execute(Client, ChatInputCommandInteraction): Promise<void>}>}
+ @type {Array<{public: boolean, data: SlashCommandBuilder, execute(Client, ChatInputCommandInteraction): Promise<void>}>}
  */
 const commands = [{
+    public: true,
     data: new SlashCommandBuilder()
         .setName('news')
         .setDescription("News setup command")
@@ -116,6 +118,7 @@ const commands = [{
         }
     }
 }, {
+    public: true,
     data: new SlashCommandBuilder()
         .setName('help')
         .setDescription("HEEEEEEELP"),
@@ -159,6 +162,7 @@ const commands = [{
         await interaction.reply({embeds: [exampleEmbed], ephemeral: false});
     }
 }, {
+    public: true,
     data: new SlashCommandBuilder()
         .setName('suggestion')
         .setDescription("Send me a suggestion to improve myself!")
@@ -175,6 +179,56 @@ const commands = [{
             `User: ${interaction.user.username} (${interaction.user.id})`,
             `Suggestion: ${interaction.options.get('suggestion').value}`)
         await interaction.reply({content: "Got it, thanks!", ephemeral: true});
+    }
+}, {
+    public: false,
+    data: new SlashCommandBuilder()
+        .setName('guild')
+        .setDescription("Find channels in a guild")
+        .setDefaultMemberPermissions(PermissionsBitField.Default)
+        .addSubcommand(subcommandGroup => subcommandGroup
+            .setName("channels")
+            .setDescription("Add an TheJournalino job to this channel")
+            .addStringOption(builder => builder
+                .setName("id")
+                .setDescription("The id of the guild you want the channels for")
+                .setRequired(true)
+            )
+        ).addSubcommand(subcommandGroup => subcommandGroup
+            .setName("send")
+            .setDescription("Send text message to a specific channel")
+            .addStringOption(builder => builder
+                .setName("channel")
+                .setDescription("Id of the channel")
+                .setRequired(true)
+            )
+            .addStringOption(builder => builder
+                .setName("string")
+                .setDescription("What to send")
+                .setRequired(true)
+            )
+        ),
+    async execute(client, interaction) {
+        let subcommand = interaction.options.getSubcommand();
+        if (subcommand === "channels") {
+            let guildId = interaction.options.get('id');
+            let guild = await client.guilds.fetch(guildId.value)
+            let channels = await guild.channels.fetch()
+            const list = []
+            // console.log(channels)
+            channels.forEach(channel => {
+                list.push(`#${channel.name}(${channel.id}) - ${channel.type}`)
+            })
+            await interaction.reply({embeds: [LoggerHelper.getLogEmbed(0x1ABC9C, list)], ephemeral: true});
+        } else if (subcommand === "send") {
+            let channelId = interaction.options.get('channel');
+            let stringToSend = interaction.options.get('string');
+            client.channels.fetch(channelId.value)
+                .then(async channel => {
+                    await channel.send(stringToSend.value);
+                }).catch(LoggerHelper.error);
+            await interaction.reply({content: "Done!", ephemeral: true});
+        }
     }
 }]
 export default commands;

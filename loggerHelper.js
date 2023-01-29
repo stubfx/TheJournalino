@@ -85,7 +85,7 @@ export function dev(data) {
  * @param {Array<any>}errors
  * @return {EmbedBuilder}
  */
-function getLogEmbed(HexColor, errors) {
+export function getLogEmbed(HexColor, errors) {
     /**
      *
      * @type {string}
