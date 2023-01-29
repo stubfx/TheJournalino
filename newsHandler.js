@@ -152,7 +152,7 @@ async function startNewsBatch() {
         let channels = currentGuild.channels
         for (let channelId in channels) {
             let topics = channels[channelId].topics
-            log.push(topics.reduce((previousValue, currentValue) => previousValue + currentValue.topic, ""))
+            log.push(topics.reduce((previousValue, currentValue) => `${previousValue}, ${currentValue.topic}`, ""))
             for (let currentTopic of topics) {
                 try {
                     await sendTopicNewsInChannel({

@@ -29,9 +29,9 @@ if (!newsDB.data) {
     await newsDB.write()
 }
 
-console.log("updating db")
-let tmp = {guilds:{}}
 if (!guildsDB.data.version) {
+    console.log("updating db")
+    let tmp = {guilds:{}}
     guildsDB.data.version = 1
     tmp.lastRunAt = guildsDB.data.lastRunAt
     tmp.version = 1
