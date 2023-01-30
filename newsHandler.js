@@ -182,7 +182,6 @@ async function startNewsBatch() {
         }
         LoggerHelper.info(...log)
     }
-    LoggerHelper.info(...log)
     LoggerHelper.info('------------------------ DONE ------------------------')
     await dbAdapter.patchData()
 }
