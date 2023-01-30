@@ -19,7 +19,10 @@ export function isValidHttpsUrl(string) {
 }
 
 export function isStringLengthLessThan(string, length) {
-    if (string instanceof String) {
+    // Primitives are a different kind of type than objects created from within Javascript,
+    // therefore the check below will always be false.
+    // if (string instanceof String) {
+    if (typeof string === "string") {
         return string.length < length
     }
     return false
