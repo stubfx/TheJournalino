@@ -163,6 +163,9 @@ async function startNewsBatch() {
             let topics = channel.topics
             log.push(topics.reduce((previousValue, currentValue) => `${previousValue}, ${currentValue.topic}`, ""))
             for (let currentTopic of topics) {
+                if (!currentTopic.user) {
+                    currentTopic.user = {id: "N/A", name: "N/A"}
+                }
                 try {
                     await sendTopicNewsInChannel({
                         guildId: guildId,
