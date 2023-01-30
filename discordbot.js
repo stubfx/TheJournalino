@@ -29,12 +29,6 @@ export function initBot() {
         await dbAdapter.removeNewsChannel(channel)
     })
 
-    client.on(Events.ChannelUpdate, async channel => {
-        LoggerHelper.channelUpdate(`Channel Updated:`,
-            `Guild: ${channel.guild.name}(${channel.guild.id})`,
-            `Channel: ${channel.name}(${channel.id})`)
-    })
-
     // client.on(Events.)
 
     client.login(process.env.discord_token).catch(reason => {
