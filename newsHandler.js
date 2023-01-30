@@ -233,7 +233,6 @@ export function startNewsHandler(discordClient) {
  *
  * @param {string}feedUrl
  * @param {NewsData}newsData
- * FIXME docs.
  * @param {any}articleMeta
  */
 function sendNudes(feedUrl, newsData, articleMeta) {
@@ -293,7 +292,9 @@ function sendNudes(feedUrl, newsData, articleMeta) {
                 50001
             ]
             if (reason instanceof DiscordAPIError) {
-                LoggerHelper.error(reason, `GuildID: ${newsData.guildId}`, `ChannelID: ${newsData.channelId}`)
+                LoggerHelper.error(reason,
+                    `Guild: ${newsData.guildName}(${newsData.guildId})`,
+                    `ChannelID: ${newsData.channelName}(${newsData.channelId})`)
                 // log the error details, only if is not a common one.
                 if (!skipError.includes(reason.code)) {
                     LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
