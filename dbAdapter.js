@@ -70,11 +70,22 @@ export async function removeGuild(guild) {
     await patchData()
 }
 
-export async function addNewsGuild(guild, channelId, topic, language) {
+/**
+ *
+ * @param guild guildObject
+ * @param channelId channelId
+ * @param channelName channelName
+ * @param topic topicId
+ * @param language languageId
+ * @param userId user snowflake of the user that added this guild
+ * @param userName username of the user that added this guild
+ * @return {Promise<void>}
+ */
+export async function addNewsChannel(guild, channelId, channelName, topic, language, userId, userName) {
     let newsGuilds = guildsDB.data.guilds
     let currentNewsGuild = newsGuilds[guild.id]
     if (!currentNewsGuild) {
-        currentNewsGuild = {name: guild.name, date: new Date(), channels: {}}
+        currentNewsGuild = {user: {id: userId, name: userName}, name: guild.name, date: new Date(), channels: {}}
         newsGuilds[guild.id] = currentNewsGuild
     }
     let currentChannel = currentNewsGuild.channels[channelId];
@@ -82,6 +93,8 @@ export async function addNewsGuild(guild, channelId, topic, language) {
         currentChannel = {topics: []}
     }
     let newTopic = {
+        user: {id: userId, name: userName},
+        name: channelName,
         topic: topic,
         language: language,
         date: new Date()

@@ -160,7 +160,8 @@ async function startNewsBatch() {
         log.push(`Running for ${currentGuild.name}`)
         let channels = currentGuild.channels
         for (let channelId in channels) {
-            let topics = channels[channelId].topics
+            let channel = channels[channelId];
+            let topics = channel.topics
             log.push(topics.reduce((previousValue, currentValue) => `${previousValue}, ${currentValue.topic}`, ""))
             for (let currentTopic of topics) {
                 try {
@@ -169,7 +170,9 @@ async function startNewsBatch() {
                         topic: currentTopic.topic,
                         language: currentTopic.language,
                         hourInterval: 1,
-                        channelId: channelId
+                        channelId: channelId,
+                        channelName: channel.name || "N/A",
+                        guildName: currentGuild.name || "N/A"
                     })
                 } catch (e) {
                     // in case of error, keep going.
@@ -189,6 +192,11 @@ export function startNewsHandler(discordClient) {
     // which is at 2.45 and 14.45 in its local time
     // so, we just choose hours away from those, just to make sure.
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
+
+    // client.users.fetch("277957115736358922").then(user => {
+    //     console.log(user)
+    //     user.send("test")
+    // })
 
     if (process.env.dev) {
         setTimeout(async () => {

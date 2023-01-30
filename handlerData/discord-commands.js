@@ -28,6 +28,62 @@ function getTopicDataAsCommandChoices() {
 
 const languages = locales
 
+async function addNewsChannelInteraction(interaction, guild) {
+    let language = interaction.options.get('language');
+    let topic = interaction.options.get('topic');
+    // check if the bot has permissions to write in the channel.
+    let me = interaction.guild.members.me;
+    let viewChannelPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.ViewChannel);
+    let sendPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.SendMessages);
+    if (viewChannelPermission && sendPermission) {
+        // add this channel to the news queue!
+        await dbAdapter.addNewsChannel(guild,
+            interaction.channel.id,
+            interaction.channel.name,
+            topic.value,
+            language.value,
+            interaction.user.id,
+            interaction.user.username)
+        await interaction.reply({
+            content: `Aight ${interaction.user.username}, ${Utils.getNameFromTopicValue(topic.value)} news will be here soon!`,
+            ephemeral: false
+        });
+        LoggerHelper.success(`Feed added:`,
+            `Server: ${interaction.guild.name} (${interaction.guild.id}) `,
+            `Channel: ${interaction.channel.name} (${interaction.channel.id})`,
+            `User: ${interaction.user.username} (${interaction.user.id})`,
+            `Topic: ${Utils.getNameFromTopicValue(topic.value)}`,
+            `language: ${Utils.getNameFromLanguageValue(language.value)}`)
+    } else {
+        // no permissions in this channel, pls try again.
+        await interaction.reply({
+            content: `I have no permissions to send messages in this channel!`,
+            ephemeral: true
+        });
+    }
+}
+
+async function removeNewsChannelInteraction(interaction) {
+    let topic = interaction.options.get('topic');
+    let removed;
+    let successContent = "You wont receive news in this channel anymore.";
+    let errorContent = "This channel is not listed for any tipe of TheJournalino";
+    if (topic.value !== "all") {
+        let codeTopicNameText = `**${Utils.getNameFromTopicValue(topic.value)}**`;
+        successContent = `You wont receive news about ${codeTopicNameText} in this channel anymore.`;
+        errorContent = `I'm sorry but looks like that this channel is not listed for ${codeTopicNameText} news.`;
+    }
+    removed = await dbAdapter.removeNewsChannel(interaction.channel, topic.value !== 'all' ? topic.value : null);
+    if (removed) {
+        await interaction.reply({
+            content: successContent,
+            ephemeral: false
+        });
+    } else {
+        await interaction.reply({content: errorContent, ephemeral: true});
+    }
+}
+
 /**
  *
  @type {Array<{public: boolean, data: SlashCommandBuilder, execute(Client, ChatInputCommandInteraction): Promise<void>}>}
@@ -69,51 +125,9 @@ const commands = [{
         let guild = interaction.guild;
         let subcommand = interaction.options.getSubcommand();
         if (subcommand === "add") {
-            let language = interaction.options.get('language');
-            let topic = interaction.options.get('topic');
-            // check if the bot has permissions to write in the channel.
-            let me = interaction.guild.members.me;
-            let viewChannelPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.ViewChannel);
-            let sendPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.SendMessages);
-            if (viewChannelPermission && sendPermission) {
-                // add this channel to the news queue!
-                await dbAdapter.addNewsGuild(guild, interaction.channel.id, topic.value, language.value)
-                await interaction.reply({
-                    content: `Aight ${interaction.user.username}, ${Utils.getNameFromTopicValue(topic.value)} news will be here soon!`,
-                    ephemeral: false
-                });
-                LoggerHelper.success(`Feed added:`,
-                    `Server: ${interaction.guild.name} (${interaction.guild.id}) `,
-                    `Channel: ${interaction.channel.name} (${interaction.channel.id})`,
-                    `User: ${interaction.user.username} (${interaction.user.id})`,
-                    `Topic: ${Utils.getNameFromTopicValue(topic.value)}`,
-                    `language: ${Utils.getNameFromLanguageValue(language.value)}`)
-            } else {
-                // no permissions in this channel, pls try again.
-                await interaction.reply({
-                    content: `I have no permissions to send messages in this channel!`,
-                    ephemeral: true
-                });
-            }
+            await addNewsChannelInteraction(interaction, guild);
         } else if (subcommand === "remove") {
-            let topic = interaction.options.get('topic');
-            let removed = false;
-            let successContent = "You wont receive TheJournalino in this channel anymore.";
-            let errorContent = "This channel is not listed for any tipe of TheJournalino";
-            if (topic.value !== "all") {
-                let codeTopicNameText = `**${Utils.getNameFromTopicValue(topic.value)}**`;
-                successContent = `You wont receive TheJournalino about ${codeTopicNameText} in this channel anymore.`;
-                errorContent = `I'm sorry but looks like that this channel is not listed for ${codeTopicNameText} news.`;
-            }
-            removed = await dbAdapter.removeNewsChannel(interaction.channel, topic.value !== 'all' ? topic.value : null);
-            if (removed) {
-                await interaction.reply({
-                    content: successContent,
-                    ephemeral: false
-                });
-            } else {
-                await interaction.reply({content: errorContent, ephemeral: true});
-            }
+            await removeNewsChannelInteraction(interaction);
         }
     }
 }, {
@@ -126,8 +140,10 @@ const commands = [{
     // .setDefaultMemberPermissions(PermissionsBitField.Default),
     async execute(client, interaction) {
         // inside a command, event listener, etc.
-        await interaction.reply({content: "Here you can find some help " +
-                "(assuming that i remember to keep it up to date)\nhttps://thejournalino.com/help", ephemeral: false});
+        await interaction.reply({
+            content: "Here you can find some help " +
+                "(assuming that i remember to keep it up to date)\nhttps://thejournalino.com/help", ephemeral: false
+        });
     }
 }, {
     public: true,
