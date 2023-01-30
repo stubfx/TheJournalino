@@ -236,7 +236,8 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
  * @param {Array<RawGoogleArticle>}rawArticles
  */
 export function cacheRawArticles(queryString, rawArticles) {
-    newsDB.data.articles[queryString] = {dateAdded: new Date(), dateFetched: new Date(), items: rawArticles}
+    // get only the first 20 elements of the array, as usually the one after them are quite OT
+    newsDB.data.articles[queryString] = {dateAdded: new Date(), dateFetched: new Date(), items: rawArticles.splice(0, 20)}
 }
 
 export function getCurrentTopicQuery(topic) {
