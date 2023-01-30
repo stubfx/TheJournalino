@@ -30,9 +30,9 @@ export function initBot() {
     })
 
     client.on(Events.ChannelUpdate, async channel => {
-        LoggerHelper.info(`Channel Updated:`,
+        LoggerHelper.channelUpdate(`Channel Updated:`,
             `Guild: ${channel.guild.name}(${channel.guild.id})`,
-            `Channel: ${channel.name}(${channel.name})`)
+            `Channel: ${channel.name}(${channel.id})`)
     })
 
     // client.on(Events.)

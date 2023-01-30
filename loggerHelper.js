@@ -65,6 +65,18 @@ export function suggestion(...data) {
         .catch(console.error);
 }
 
+export function channelUpdate(...data) {
+    let log = getSanitizedLog(data)
+    console.info(log)
+    client.channels.fetch(process.env.discord_log_channelUpdate_channel_id)
+        .then(async channel => {
+            // await channel.send({embeds: [exampleEmbed]});
+            // await channel.send(`:green_circle:\`${log.toString()}\``);
+            await channel.send({embeds: [getLogEmbed(0x57F287, log)]});
+        })
+        .catch(console.error);
+}
+
 export function info(...data) {
     console.log(data)
     client.channels.fetch(process.env.discord_log_channel_id)
