@@ -29,8 +29,6 @@ export function initBot() {
         await dbAdapter.removeNewsChannel(channel)
     })
 
-    // client.on(Events.)
-
     client.login(process.env.discord_token).catch(reason => {
         LoggerHelper.info(reason)
     });
