@@ -151,13 +151,12 @@ async function startNewsBatch() {
     LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
     await dbAdapter.updateLastNewsBatchRun()
     let allGuilds = dbAdapter.getAllGuilds();
-    let log = []
     // reset cache for the next news cycle.
     dbAdapter.prepareForNewBatch();
     for (let guildId in allGuilds) {
         let currentGuild = allGuilds[guildId]
         // LoggerHelper.info(`Running for ${currentGuild.name}`)
-        log.push(`Running for ${currentGuild.name}`)
+        let log = [`Running for ${currentGuild.name}`]
         let channels = currentGuild.channels
         for (let channelId in channels) {
             let channel = channels[channelId];
@@ -171,15 +170,17 @@ async function startNewsBatch() {
                         language: currentTopic.language,
                         hourInterval: 1,
                         channelId: channelId,
-                        channelName: channel.name || "N/A",
-                        guildName: currentGuild.name || "N/A"
+                        channelName: channel.name,
+                        guildName: currentGuild.name,
+                        jobCreator: {id: currentTopic.user.id, name: currentTopic.user.name}
                     })
                 } catch (e) {
                     // in case of error, keep going.
-                    LoggerHelper.error(`Fatal error encountered for ${currentGuild.name}(${guildId}) - topic: ${topicsKey} - language: ${topic.language}`, e)
+                    LoggerHelper.error(`Fatal error encountered for ${currentGuild.name}(${guildId}) - topic: ${currentTopic.topic} - language: ${currentTopic.language}`, e)
                 }
             }
         }
+        LoggerHelper.info(...log)
     }
     LoggerHelper.info(...log)
     LoggerHelper.info('------------------------ DONE ------------------------')
@@ -294,7 +295,7 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             if (reason instanceof DiscordAPIError) {
                 LoggerHelper.error(reason,
                     `Guild: ${newsData.guildName}(${newsData.guildId})`,
-                    `ChannelID: ${newsData.channelName}(${newsData.channelId})`)
+                    `Channel: ${newsData.channelName}(${newsData.channelId})`)
                 // log the error details, only if is not a common one.
                 if (!skipError.includes(reason.code)) {
                     LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
