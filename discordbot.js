@@ -8,6 +8,7 @@ export function initBot() {
     const client = new Discord.Client({intents: [IntentsBitField.Flags.Guilds]});
     client.on(Events.ClientReady, async () => {
         LoggerHelper.init(client)
+        // dbAdapter.init()
         LoggerHelper.dev(`Logged in as ${client.user.tag}!`);
         await updateCommands(client)
         startNewsHandler(client)

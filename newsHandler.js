@@ -164,7 +164,7 @@ async function startNewsBatch() {
             log.push(topics.reduce((previousValue, currentValue) => `${previousValue}, ${currentValue.topic}`, ""))
             for (let currentTopic of topics) {
                 if (!currentTopic.user) {
-                    currentTopic.user = {id: "N/A", name: "N/A"}
+                    currentTopic.user = {id: null, name: null}
                 }
                 try {
                     await sendTopicNewsInChannel({
@@ -201,12 +201,12 @@ export function startNewsHandler(discordClient) {
     //     user.send("test")
     // })
 
-    if (process.env.dev) {
-        setTimeout(async () => {
-            await startNewsBatch();
-        }, 5000)// run once every 10 seconds
-        return
-    }
+    // if (process.env.dev) {
+    //     setTimeout(async () => {
+    //         await startNewsBatch();
+    //     }, 5000)// run once every 10 seconds
+    //     return
+    // }
 
     setInterval(async () => {
         let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();

@@ -3,8 +3,36 @@ import topicsData from "./datamodels/topicsData.js";
 import {rndArrayItem} from "./utils.js";
 import {findMetaEmbeds} from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
+// import {MongoClient} from "mongodb";
 
 const DEFAULT_TOPIC = "top";
+// const mongoClient = new MongoClient(process.env.db_guilds_conn_string);
+
+export function init() {
+    // UNCOMMENT TO MIMGRATE TO MONGODB.
+    // async function run() {
+    //     try {
+    //         const database = mongoClient.db('news');
+    //         const guildsCollection = database.collection('guilds');
+    //         let guilds = getAllGuilds()
+    //         const data = [];
+    //         for (let guildKey in guilds) {
+    //             let channels = guilds[guildKey].channels
+    //             for (let channelsKey in channels) {
+    //                 channels[channelsKey].topics.forEach(value => value.date = new Date(value.date))
+    //             }
+    //             data.push({id: guildKey, name: guilds[guildKey].name, channels: guilds[guildKey].channels, date: new Date(guilds[guildKey].date)})
+    //         }
+    //         const options = { ordered: true };
+    //         const guild = await guildsCollection.insertMany(data);
+    //         console.log(JSON.stringify(data, null, 4));
+    //     } finally {
+    //         // Ensures that the mongoClient will close when you finish/error
+    //         await mongoClient.close();
+    //     }
+    // }
+    // run()
+}
 
 /**
  *
