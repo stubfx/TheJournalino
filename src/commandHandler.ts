@@ -48,7 +48,9 @@ export default async function updateCommands(client) {
             {body: restCommandsForAdminGuild},
         );
 
+        // @ts-ignore
         LoggerHelper.info(`Successfully reloaded ${data.length} application (/) commands.`);
+        // @ts-ignore
         LoggerHelper.info(`Successfully reloaded ${dataRestricted.length} admin application (/) commands.`);
     } catch (error) {
         // And of course, make sure you catch and log any errors!
@@ -69,6 +71,7 @@ export default async function updateCommands(client) {
             }
 
             try {
+                // @ts-ignore
                 await command.execute(client, interaction);
             } catch (error) {
                 LoggerHelper.error(error);

@@ -28,7 +28,7 @@ function getTopicDataAsCommandChoices() {
 
 const languages = locales
 
-async function addNewsChannelInteraction(interaction, guild) {
+async function addNewsChannelInteraction(interaction) {
     let language = interaction.options.get('language');
     let topic = interaction.options.get('topic');
     // check if the bot has permissions to write in the channel.
@@ -37,13 +37,11 @@ async function addNewsChannelInteraction(interaction, guild) {
     let sendPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.SendMessages);
     if (viewChannelPermission && sendPermission) {
         // add this channel to the news queue!
-        await dbAdapter.addNewsChannel(guild,
-            interaction.channel.id,
-            interaction.channel.name,
+        await dbAdapter.addNewsChannel(interaction.guild,
+            interaction.channel,
+            interaction.user,
             topic.value,
-            language.value,
-            interaction.user.id,
-            interaction.user.username)
+            language.value)
         await interaction.reply({
             content: `Aight ${interaction.user.username}, ${Utils.getNameFromTopicValue(topic.value)} news will be here soon!`,
             ephemeral: false
@@ -122,10 +120,9 @@ const commands = [{
         ),
     // .setDefaultMemberPermissions(PermissionsBitField.Default),
     async execute(client, interaction) {
-        let guild = interaction.guild;
         let subcommand = interaction.options.getSubcommand();
         if (subcommand === "add") {
-            await addNewsChannelInteraction(interaction, guild);
+            await addNewsChannelInteraction(interaction);
         } else if (subcommand === "remove") {
             await removeNewsChannelInteraction(interaction);
         }

@@ -3,35 +3,41 @@ import topicsData from "./datamodels/topicsData.js";
 import {rndArrayItem} from "./utils.js";
 import {findMetaEmbeds} from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
-// import {MongoClient} from "mongodb";
+import mongoose from "mongoose";
+import {NewsGuildSchemaInterface, NewsGuild} from "./schemas.js";
 
 const DEFAULT_TOPIC = "top";
-// const mongoClient = new MongoClient(process.env.db_guilds_conn_string);
+let mongooseConnection = null
 
-export function init() {
-    // UNCOMMENT TO MIMGRATE TO MONGODB.
-    // async function run() {
-    //     try {
-    //         const database = mongoClient.db('news');
-    //         const guildsCollection = database.collection('guilds');
-    //         let guilds = getAllGuilds()
-    //         const data = [];
-    //         for (let guildKey in guilds) {
-    //             let channels = guilds[guildKey].channels
-    //             for (let channelsKey in channels) {
-    //                 channels[channelsKey].topics.forEach(value => value.date = new Date(value.date))
-    //             }
-    //             data.push({id: guildKey, name: guilds[guildKey].name, channels: guilds[guildKey].channels, date: new Date(guilds[guildKey].date)})
-    //         }
-    //         const options = { ordered: true };
-    //         const guild = await guildsCollection.insertMany(data);
-    //         console.log(JSON.stringify(data, null, 4));
-    //     } finally {
-    //         // Ensures that the mongoClient will close when you finish/error
-    //         await mongoClient.close();
-    //     }
-    // }
-    // run()
+// export async function migrateToMongo() {
+//
+//     const NewsGuild = mongoose.model('newsGuild', NewsGuildSchema)
+//     let toSend = []
+//     let allGuilds = getAllGuilds()
+//     for (let allGuildsKey in allGuilds) {
+//         let currentGuild = allGuilds[allGuildsKey]
+//         let channels = currentGuild.channels
+//         let channelsToSend = []
+//         for (let channelsKey in channels) {
+//             let currentChannel = channels[channelsKey]
+//             channelsToSend.push(currentChannel)
+//             currentChannel.topics.forEach(value => {
+//                 value.date = new Date()
+//             })
+//         }
+//         toSend.push(new NewsGuild({
+//             id: allGuildsKey,
+//             name: currentGuild.name,
+//             channels: channelsToSend,
+//             date: new Date()
+//         }))
+//     }
+//     await NewsGuild.bulkSave(toSend)
+// }
+
+export async function init() {
+    mongoose.set('strictQuery', false);
+    mongooseConnection = await mongoose.connect(process.env.db_guilds_conn_string, {dbName: process.env.db_guilds_name});
 }
 
 /**
@@ -48,24 +54,27 @@ export async function updateLastNewsBatchRun() {
     await patchGuildsData()
 }
 
-export function getAllGuilds() {
-    return guildsDB.data.guilds
+export async function forEachGuild(func: (newsGuild: NewsGuildSchemaInterface) => {}) {
+    let cursor = await NewsGuild.find().cursor()
+    for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
+        // @ts-ignore
+        func(doc as NewsGuildSchemaInterface)
+    }
 }
 
-export async function removeNewsChannel(channel, topic) {
+export async function removeNewsChannel(channel, topic = null) {
     let found = false
-    let newsGuilds = guildsDB.data.guilds
-    let currentNewsGuild = newsGuilds[channel.guild.id];
+    let currentNewsGuild = await NewsGuild.findOne({id: channel.guild.id})
     if (currentNewsGuild) {
         let channels = currentNewsGuild.channels
         if (channels) {
-            let currentChannel = channels[channel.id]
+            let currentChannel = currentNewsGuild.channels.find(value => value.id === channel.id);
             if (currentChannel) {
                 if (!topic) {
                     // if there is no topic, delete all topics from this channel.
                     // currentChannel.topics = []
                     // actually... just delete the channel.
-                    delete channels[channel.id]
+                    currentNewsGuild.channels = currentNewsGuild.channels.filter(value => value.id !== currentChannel.id)
                     found = true
                 } else {
                     // topic is specific! Delete it only if the channel matches!
@@ -80,60 +89,62 @@ export async function removeNewsChannel(channel, topic) {
                         })
                     }
                     if (currentChannel.topics.length === 0) {
-                        // actually... just delete the channel.
-                        delete channels[channel.id]
+                        // in this case there are no topics in this channel, just delete it.
+                        currentNewsGuild.channels = currentNewsGuild.channels.filter(value => value.id !== currentChannel.id)
                     }
                 }
             }
         }
     }
-    if (found) {
-        await patchData()
-    }
+    currentNewsGuild.save()
     return found
 }
 
 export async function removeGuild(guild) {
-    delete guildsDB.data.guilds[guild.id]
-    await patchData()
+    NewsGuild.deleteOne({id: guild.id})
 }
 
-/**
- *
- * @param guild guildObject
- * @param channelId channelId
- * @param channelName channelName
- * @param topic topicId
- * @param language languageId
- * @param userId user snowflake of the user that added this guild
- * @param userName username of the user that added this guild
- * @return {Promise<void>}
- */
-export async function addNewsChannel(guild, channelId, channelName, topic, language, userId, userName) {
-    let newsGuilds = guildsDB.data.guilds
-    let currentNewsGuild = newsGuilds[guild.id]
+export async function addNewsChannel(guild, channel, user, topic, language) {
+    let currentNewsGuild = await NewsGuild.findOne({id: guild.id})
     if (!currentNewsGuild) {
-        currentNewsGuild = {user: {id: userId, name: userName}, name: guild.name, date: new Date(), channels: {}}
-        newsGuilds[guild.id] = currentNewsGuild
+        currentNewsGuild = await NewsGuild.create({
+            id: guild.id,
+            name: guild.name,
+            channels: [],
+            date: new Date()
+        })
     }
-    let currentChannel = currentNewsGuild.channels[channelId];
+    let currentChannel = currentNewsGuild.channels.find(value => value.id === channel.id);
     if (!currentChannel) {
-        currentChannel = {topics: []}
+        // in this case the channel is missing, add it.
+        currentChannel = {
+            id: channel.id,
+            name: channel.name,
+            topics: []
+        }
+        // add this new channel to the list.
+        // that's important.
+        currentNewsGuild.channels.push(currentChannel)
     }
-    let newTopic = {
-        user: {id: userId, name: userName},
-        name: channelName,
-        topic: topic,
-        language: language,
-        date: new Date()
-    }
+    // does the topic already exist in the channel?
+    // if it does, no need to replace it.
     let found = currentChannel.topics.find(value => value.topic === topic && value.language === language);
     if (!found) {
+        // well in this case we should add it.
+        // create the new topic, it will be replaced with the old one.
+        let newTopic = {
+            topic: topic,
+            language: language,
+            date: new Date(),
+            user: {
+                id: user.id,
+                name: user.username
+            }
+        }
         currentChannel.topics.push(newTopic)
     }
-    // time to push data into it.
-    currentNewsGuild.channels[channelId] = currentChannel
-    await patchData()
+    // aight, time to save it.
+    currentNewsGuild.save()
 }
 
 let topicsCache = {};
@@ -173,7 +184,7 @@ export function clearCurrentArticlesCache() {
     currentArticlesCache = {}
 }
 
-export function addExpensiveQuery(queryString) {
+export function addExpensiveQuery(queryString: String) {
     if (!newsDB.data.expensiveQueries) {
         newsDB.data.expensiveQueries = []
     }
@@ -236,9 +247,6 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
     // first of all, let's write down that we are actually fetching this
     cachedDataItem.dateFetched = currentDate
     // then we are going to iterate through the items.
-    /**
-     * @type Array<RawGoogleArticle>
-     */
     let newsDBArray = cachedDataItem.items;
     let article = null
     while (newsDBArray && newsDBArray.length) {
@@ -258,14 +266,10 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
     return article
 }
 
-/**
- *
- * @param {string}queryString
- * @param {Array<RawGoogleArticle>}rawArticles
- */
 export function cacheRawArticles(queryString, rawArticles) {
+    let items = rawArticles ? rawArticles.splice(0, 20) : null
     // get only the first 20 elements of the array, as usually the one after them are quite OT
-    newsDB.data.articles[queryString] = {dateAdded: new Date(), dateFetched: new Date(), items: rawArticles.splice(0, 20)}
+    newsDB.data.articles[queryString] = {dateAdded: new Date(), dateFetched: new Date(), items: items}
 }
 
 export function getCurrentTopicQuery(topic) {

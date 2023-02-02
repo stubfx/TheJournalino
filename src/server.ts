@@ -10,7 +10,7 @@ import path from "path";
 import Fastify from 'fastify'
 
 
-import fastifyStatic from "@fastify/static";
+import fastifyStatic from '@fastify/static';
 import {dirname} from "node:path";
 import {fileURLToPath} from "node:url";
 

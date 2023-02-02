@@ -16,18 +16,6 @@
  */
 
 /**
- * @typedef NewsData
- * @property {string}topic
- * @property {string}guildId
- * @property {string}guildName
- * @property {string}channelId
- * @property {string}channelName
- * @property {User}jobCreator
- * @property {string}language
- * @property {number}hourInterval
- */
-
-/**
  * @typedef NewsGuild
  * @property {string}name gaming
  * @property {string}language en

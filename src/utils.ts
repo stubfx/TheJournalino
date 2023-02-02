@@ -18,12 +18,12 @@ export function isValidHttpsUrl(string) {
     return /*url.protocol === "http:" || */url.protocol === "https:" || !url.host.includes("_");
 }
 
-export function isStringLengthLessThan(string, length) {
+export function checkStringLength(string, max, min = 1) {
     // Primitives are a different kind of type than objects created from within Javascript,
     // therefore the check below will always be false.
     // if (string instanceof String) {
     if (typeof string === "string") {
-        return string.length < length
+        return string.length > min && string.length < max
     }
     return false
 }
@@ -43,7 +43,7 @@ export function getNameFromLanguageValue(languageValue) {
     return `ERROR(${languageValue})`
 }
 
-export async function fetchWithTimeout(resource, options = {}) {
+export async function fetchWithTimeout(resource, options = {timeout: 5000}) {
     const { timeout = 5000 } = options;
 
     const controller = new AbortController();

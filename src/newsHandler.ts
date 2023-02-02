@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
 import {DiscordAPIError, EmbedBuilder} from "discord.js";
 import * as dbAdapter from "./dbAdapter.js";
+import {forEachGuild} from "./dbAdapter.js";
 import * as LoggerHelper from "./loggerHelper.js";
 import * as Utils from "./utils.js";
 import {getPhrase} from "./datamodels/footer_labels.js";
@@ -10,6 +11,12 @@ import {getCTAField} from "./datamodels/news_random_cta.js";
 let client = null
 
 class ArticleMetadata {
+    private googleRSSFEED: null;
+    private url: any;
+    private title: any;
+    private description: any;
+    private imageLink: any;
+    private author: any;
     constructor(url, title, description, imageLink, author) {
         // noinspection JSUnusedGlobalSymbols
         this.googleRSSFEED = null
@@ -38,8 +45,8 @@ class ArticleMetadata {
     isComplete() {
         // check if urls are fine! that's important.
         return !!(Utils.isValidHttpsUrl(this.url)
-            && Utils.isStringLengthLessThan(this.title, 256)
-            && Utils.isStringLengthLessThan(this.description, 4096)
+            && Utils.checkStringLength(this.title, 256)
+            && Utils.checkStringLength(this.description, 4096)
             && Utils.isValidHttpsUrl(this.imageLink))
     }
 }
@@ -58,11 +65,6 @@ function getGoogleNewsFeedUrl(newsData) {
     return feedUrl
 }
 
-/**
- *
- * @param {RawGoogleArticle}rawGoogleArticle
- * @return {Promise<ArticleMetadata>}
- */
 export async function findMetaEmbeds(rawGoogleArticle) {
     return new Promise(async resolve => {
         // gets the link from the Google article
@@ -139,7 +141,7 @@ async function sendTopicNewsInChannel(newsData) {
         // article has been found in and sent from cache, abort.
         return
     }
-    await retrieveGoogleArticles(googleNewsFeedUrl, newsData);
+    await retrieveGoogleArticles(googleNewsFeedUrl);
     // aight, if everything was right, we should have the article in cache
     // if not, then the query has been probably added to the expensive list.
     // we are trying once, just to avoid stupid loops.
@@ -150,16 +152,14 @@ async function sendTopicNewsInChannel(newsData) {
 async function startNewsBatch() {
     LoggerHelper.info('--------------------- NEWS BATCH ---------------------')
     await dbAdapter.updateLastNewsBatchRun()
-    let allGuilds = dbAdapter.getAllGuilds();
     // reset cache for the next news cycle.
     dbAdapter.prepareForNewBatch();
-    for (let guildId in allGuilds) {
-        let currentGuild = allGuilds[guildId]
-        // LoggerHelper.info(`Running for ${currentGuild.name}`)
-        let log = [`Running for ${currentGuild.name}`]
-        let channels = currentGuild.channels
-        for (let channelId in channels) {
-            let channel = channels[channelId];
+    await forEachGuild(async newsGuild => {
+        console.log(newsGuild)
+        LoggerHelper.info(`Running for ${newsGuild.channels}`)
+        let log = [`Running for ${newsGuild.name}`]
+        let channels = newsGuild.channels
+        for (let channel of channels) {
             let topics = channel.topics
             log.push(topics.reduce((previousValue, currentValue) => `${previousValue}, ${currentValue.topic}`, ""))
             for (let currentTopic of topics) {
@@ -168,23 +168,23 @@ async function startNewsBatch() {
                 }
                 try {
                     await sendTopicNewsInChannel({
-                        guildId: guildId,
+                        guildId: newsGuild.id,
                         topic: currentTopic.topic,
                         language: currentTopic.language,
                         hourInterval: 1,
-                        channelId: channelId,
+                        channelId: channel.id,
                         channelName: channel.name,
-                        guildName: currentGuild.name,
+                        guildName: newsGuild.name,
                         jobCreator: {id: currentTopic.user.id, name: currentTopic.user.name}
                     })
                 } catch (e) {
                     // in case of error, keep going.
-                    LoggerHelper.error(`Fatal error encountered for ${currentGuild.name}(${guildId}) - topic: ${currentTopic.topic} - language: ${currentTopic.language}`, e)
+                    LoggerHelper.error(`Fatal error encountered for ${newsGuild.name}(${newsGuild.id}) - topic: ${currentTopic.topic} - language: ${currentTopic.language}`, e)
                 }
             }
         }
         LoggerHelper.info(...log)
-    }
+    })
     LoggerHelper.info('------------------------ DONE ------------------------')
     await dbAdapter.patchData()
 }
@@ -202,9 +202,9 @@ export function startNewsHandler(discordClient) {
     // })
 
     // if (process.env.dev) {
-    //     setTimeout(async () => {
-    //         await startNewsBatch();
-    //     }, 5000)// run once every 10 seconds
+        setTimeout(async () => {
+            await startNewsBatch();
+        }, 1000)// run once every 10 seconds
     //     return
     // }
 
@@ -290,16 +290,16 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             }).catch(reason => {
             const skipError = [
                 // DiscordAPIError[50013]: Missing Permissions
-                50013,
+                "50013",
                 // DiscordAPIError[50001]: Missing Access
-                50001
+                "50001"
             ]
             if (reason instanceof DiscordAPIError) {
                 LoggerHelper.error(reason,
                     `Guild: ${newsData.guildName}(${newsData.guildId})`,
                     `Channel: ${newsData.channelName}(${newsData.channelId})`)
                 // log the error details, only if is not a common one.
-                if (!skipError.includes(reason.code)) {
+                if (!skipError.includes(reason.code.toString())) {
                     LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
                 }
             } else {

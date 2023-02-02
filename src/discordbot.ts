@@ -1,5 +1,4 @@
 import Discord, {Events, IntentsBitField} from "discord.js";
-import updateCommands from "./commandHandler.js"
 import {startNewsHandler} from "./newsHandler.js";
 import * as dbAdapter from "./dbAdapter.js";
 import * as LoggerHelper from "./loggerHelper.js";
@@ -8,11 +7,11 @@ export function initBot() {
     const client = new Discord.Client({intents: [IntentsBitField.Flags.Guilds]});
     client.on(Events.ClientReady, async () => {
         LoggerHelper.init(client)
-        // dbAdapter.init()
+        await dbAdapter.init()
         LoggerHelper.dev(`Logged in as ${client.user.tag}!`);
-        await updateCommands(client)
+        // await updateCommands(client)
         startNewsHandler(client)
-        LoggerHelper.info("TheJournalino ready!")
+        // LoggerHelper.info("TheJournalino ready!")
     });
 
     client.on(Events.GuildCreate, guild => {
