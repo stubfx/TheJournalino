@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+body {
+    background-color: #1e2124 !important;
+    font-family: 'Roboto', sans-serif !important;
+    color: white !important;
+}
+
+body.fixed-page {
+    overflow: hidden;
+    height: 100vh !important;
+}
+
+.btn.btn-primary {
+    margin-top: 15px;
+    min-width: 250px;
+    max-width: 350px;
+    width: 70vw;
+    display: flex;
+    background-color: #7289da;
+    border: 1px solid #7289da;
+    height: 60px;
+}
+
+.btn.btn-primary:hover {
+    border: 1px solid white !important;
+    background-color: #7289da !important;
+
+    animation: spinner 100ms infinite linear;
+}
+
+.support-server-button:hover {
+    border: 1px solid white !important;
+    background-color: red !important;
+
+    animation: spinner 100ms infinite linear;
+}
+
+.help-button:hover {
+    border: 1px solid white !important;
+    background-color: #8c00ff !important;
+
+    animation: spinner 100ms infinite linear;
+}
+
+.btn.btn-primary span {
+    color: white;
+    align-self: center;
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.header-logo {
+    width: 200px !important;
+}
+
+.header-logo:hover {
+    animation: angry 200s 1 linear;
+}
+
+@keyframes spinner {
+    from {
+        transform: rotate(0deg);
+        scale: 100%;
+    }
+    to {
+        transform: rotate(360deg);
+        scale: 200%;
+    }
+}
+
+@keyframes angry {
+    from {
+        scale: 100%;
+        filter:hue-rotate(0deg);
+    }
+    to {
+        scale: 2000%;
+        filter:hue-rotate(360deg);
+    }
+}

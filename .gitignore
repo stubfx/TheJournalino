@@ -1,3 +1,2 @@
 .env
-/db
-/dist/db/newsDB.json
+/dist/db/*.json
