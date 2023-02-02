@@ -69,9 +69,13 @@ export async function forEachGuild(func: (newsGuild: NewsGuildSchemaInterface) =
     }
 }
 
+export async function findGuild(guildId) {
+    return NewsGuild.findOne({id: guildId});
+}
+
 export async function removeNewsChannel(channel, topic = null) {
     let found = false
-    let currentNewsGuild = await NewsGuild.findOne({id: channel.guild.id})
+    let currentNewsGuild = await findGuild(channel.guild.id)
     if (currentNewsGuild) {
         let channels = currentNewsGuild.channels
         if (channels) {
@@ -121,7 +125,7 @@ export async function addNewsChannel(guild, channel, user, topic, language) {
             name: user.username
         }
     }
-    let currentNewsGuild = await NewsGuild.findOne({id: guild.id})
+    let currentNewsGuild = await findGuild(guild.id)
     if (!currentNewsGuild) {
         currentNewsGuild = await NewsGuild.create({
             id: guild.id,

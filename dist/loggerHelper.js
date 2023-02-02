@@ -54,11 +54,12 @@ export function info(...data) {
 export function dev(data) {
     console.log(data);
 }
-export function getLogEmbed(HexColor, errors) {
+export function getLogEmbed(HexColor, data, autoBreakLine = true) {
+    const linebreak = autoBreakLine ? "\n" : "";
     let log = "";
-    for (let data of errors) {
+    for (let datum of data) {
         try {
-            log += (data.toString() + "\n");
+            log += (datum.toString() + linebreak);
         }
         catch (e) {
             log += `"ERROR" : ${e}`;

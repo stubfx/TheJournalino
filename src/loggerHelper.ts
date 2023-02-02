@@ -82,18 +82,16 @@ export function dev(data) {
 
 /**
  * @param {number}HexColor
- * @param {Array<any>}errors
+ * @param {Array<any>}data
+ * @param autoBreakLine
  * @return {EmbedBuilder}
  */
-export function getLogEmbed(HexColor, errors) {
-    /**
-     *
-     * @type {string}
-     */
+export function getLogEmbed(HexColor, data, autoBreakLine = true) {
+    const linebreak = autoBreakLine ? "\n" : "";
     let log = ""
-    for (let data of errors) {
+    for (let datum of data) {
         try {
-            log += (data.toString() + "\n")
+            log += (datum.toString() + linebreak)
         } catch (e) {
             log += `"ERROR" : ${e}`
         }

@@ -168,6 +168,15 @@ const commands = [{
         .setDescription("Find channels in a guild")
         .setDefaultMemberPermissions(PermissionsBitField.Default)
         .addSubcommand(subcommandGroup => subcommandGroup
+            .setName("newsinfo")
+            .setDescription("Get news info for the given guild")
+            .addStringOption(builder => builder
+                .setName("id")
+                .setDescription("The id of the guild you want the info for")
+                .setRequired(true)
+            )
+        )
+        .addSubcommand(subcommandGroup => subcommandGroup
             .setName("channels")
             .setDescription("Add an TheJournalino job to this channel")
             .addStringOption(builder => builder
@@ -191,12 +200,15 @@ const commands = [{
         ),
     async execute(client, interaction) {
         let subcommand = interaction.options.getSubcommand();
-        if (subcommand === "channels") {
+        if (subcommand === "newsinfo") {
+            let guildId = interaction.options.get('id');
+            let guild = await dbAdapter.findGuild(guildId.value)
+            await interaction.reply({embeds: [LoggerHelper.getLogEmbed(0x1ABC9C, JSON.stringify(guild, null, 4), false)], ephemeral: true});
+        } else if (subcommand === "channels") {
             let guildId = interaction.options.get('id');
             let guild = await client.guilds.fetch(guildId.value)
             let channels = await guild.channels.fetch()
             const list = []
-            // console.log(channels)
             channels.forEach(channel => {
                 list.push(`#${channel.name}(${channel.id}) - ${channel.type}`)
             })
