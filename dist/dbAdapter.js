@@ -197,7 +197,10 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
     return article;
 }
 export function cacheRawArticles(queryString, rawArticles) {
-    let items = rawArticles ? rawArticles.splice(0, 20) : null;
+    let items = null;
+    if (rawArticles instanceof Array) {
+        items = rawArticles.splice(0, 20);
+    }
     newsDB.data.articles[queryString] = { dateAdded: new Date(), dateFetched: new Date(), items: items };
 }
 export function getCurrentTopicQuery(topic) {

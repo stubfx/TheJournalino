@@ -276,8 +276,11 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
 }
 
 export function cacheRawArticles(queryString, rawArticles) {
-    let items = rawArticles ? rawArticles.splice(0, 20) : null
     // get only the first 20 elements of the array, as usually the one after them are quite OT
+    let items = null
+    if (rawArticles instanceof Array) {
+        items = rawArticles.splice(0, 20)
+    }
     newsDB.data.articles[queryString] = {dateAdded: new Date(), dateFetched: new Date(), items: items}
 }
 
