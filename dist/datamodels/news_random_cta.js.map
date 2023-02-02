@@ -1,0 +1,1 @@
+{"version":3,"file":"news_random_cta.js","sourceRoot":"","sources":["../../src/datamodels/news_random_cta.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,YAAY,EAAC,MAAM,aAAa,CAAC;AAMzC,MAAM,SAAS,GAAG;IACd;QACI,IAAI,EAAE,uBAAuB;QAC7B,KAAK,EAAE,wCAAwC;KAClD;CACJ,CAAC;AAEF,MAAM,UAAU,WAAW;IACvB,OAAO,YAAY,CAAC,SAAS,CAAC,CAAA;AAClC,CAAC"}

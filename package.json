@@ -12,7 +12,7 @@
     "build": "npx tsc",
     "dev-dotenv": "node -r dotenv/config dist/server.js",
     "startdev": "nodemon -e ts --exec \"npm run build && npm run dev-dotenv\"",
-    "start": "npm run build && node dist/server.js"
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "@fastify/static": "^6.6.0",
