@@ -160,8 +160,7 @@ async function startNewsBatch() {
         let channels = newsGuild.channels
         for (let channel of channels) {
             let topics = channel.topics
-            LoggerHelper.info(topics)
-            // log.push(topics.reduce((previousValue, currentValue) => `${previousValue}, ${currentValue.topic}`, ""))
+            log.push(`Topics: ${topics ? topics.toString() : "No topics found"}`)
             for (let currentTopic of topics) {
                 if (!currentTopic.user) {
                     currentTopic.user = {id: null, name: null}
