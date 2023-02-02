@@ -3,7 +3,8 @@ import {join, dirname} from 'node:path'
 import {fileURLToPath} from 'node:url'
 
 import * as lowdb from "lowdb";
-import {JSONFile} from "lowdb/lib/adapters/JSONFile";
+// @ts-ignore
+import {JSONFile} from "lowdb/node";
 
 
 // File path

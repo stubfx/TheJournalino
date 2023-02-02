@@ -11,12 +11,12 @@ import {getCTAField} from "./datamodels/news_random_cta.js";
 let client = null
 
 class ArticleMetadata {
-    private googleRSSFEED: null;
-    private url: any;
-    private title: any;
-    private description: any;
-    private imageLink: any;
-    private author: any;
+    public googleRSSFEED: null;
+    public url: any;
+    public title: any;
+    public description: any;
+    public imageLink: any;
+    public author: any;
     constructor(url, title, description, imageLink, author) {
         // noinspection JSUnusedGlobalSymbols
         this.googleRSSFEED = null
@@ -156,12 +156,12 @@ async function startNewsBatch() {
     dbAdapter.prepareForNewBatch();
     await forEachGuild(async newsGuild => {
         console.log(newsGuild)
-        LoggerHelper.info(`Running for ${newsGuild.channels}`)
         let log = [`Running for ${newsGuild.name}`]
         let channels = newsGuild.channels
         for (let channel of channels) {
             let topics = channel.topics
-            log.push(topics.reduce((previousValue, currentValue) => `${previousValue}, ${currentValue.topic}`, ""))
+            LoggerHelper.info(topics)
+            // log.push(topics.reduce((previousValue, currentValue) => `${previousValue}, ${currentValue.topic}`, ""))
             for (let currentTopic of topics) {
                 if (!currentTopic.user) {
                     currentTopic.user = {id: null, name: null}
@@ -201,12 +201,12 @@ export function startNewsHandler(discordClient) {
     //     user.send("test")
     // })
 
-    // if (process.env.dev) {
+    if (process.env.dev) {
         setTimeout(async () => {
             await startNewsBatch();
         }, 1000)// run once every 10 seconds
-    //     return
-    // }
+        return
+    }
 
     setInterval(async () => {
         let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
@@ -238,7 +238,7 @@ export function startNewsHandler(discordClient) {
  * @param {NewsData}newsData
  * @param {any}articleMeta
  */
-function sendNudes(feedUrl, newsData, articleMeta) {
+function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
     try {
         LoggerHelper.dev(`Sending article "${articleMeta.title}"`)
         if (process.env.dev) {

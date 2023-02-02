@@ -4,40 +4,47 @@ import {rndArrayItem} from "./utils.js";
 import {findMetaEmbeds} from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
 import mongoose from "mongoose";
-import {NewsGuildSchemaInterface, NewsGuild} from "./schemas.js";
+import {NewsGuildSchemaInterface, NewsGuild, NewsGuildSchema} from "./schemas.js";
 
 const DEFAULT_TOPIC = "top";
 let mongooseConnection = null
 
-// export async function migrateToMongo() {
-//
-//     const NewsGuild = mongoose.model('newsGuild', NewsGuildSchema)
-//     let toSend = []
-//     let allGuilds = getAllGuilds()
-//     for (let allGuildsKey in allGuilds) {
-//         let currentGuild = allGuilds[allGuildsKey]
-//         let channels = currentGuild.channels
-//         let channelsToSend = []
-//         for (let channelsKey in channels) {
-//             let currentChannel = channels[channelsKey]
-//             channelsToSend.push(currentChannel)
-//             currentChannel.topics.forEach(value => {
-//                 value.date = new Date()
-//             })
-//         }
-//         toSend.push(new NewsGuild({
-//             id: allGuildsKey,
-//             name: currentGuild.name,
-//             channels: channelsToSend,
-//             date: new Date()
-//         }))
-//     }
-//     await NewsGuild.bulkSave(toSend)
-// }
+export async function migrateToMongo() {
+
+    const NewsGuild = mongoose.model('newsGuild', NewsGuildSchema)
+    let toSend = []
+    let allGuilds = getAllGuilds()
+    for (let allGuildsKey in allGuilds) {
+        let currentGuild = allGuilds[allGuildsKey]
+        let channels = currentGuild.channels
+        let channelsToSend = []
+        for (let channelsKey in channels) {
+            let currentChannel = channels[channelsKey]
+            currentChannel.id = channelsKey
+            currentChannel.name = null
+            channelsToSend.push(currentChannel)
+            currentChannel.topics.forEach(value => {
+                value.date = new Date()
+            })
+        }
+        toSend.push(new NewsGuild({
+            id: allGuildsKey,
+            name: currentGuild.name,
+            channels: channelsToSend,
+            date: new Date()
+        }))
+    }
+    await NewsGuild.bulkSave(toSend)
+    console.log("DONE.")
+}
 
 export async function init() {
     mongoose.set('strictQuery', false);
     mongooseConnection = await mongoose.connect(process.env.db_guilds_conn_string, {dbName: process.env.db_guilds_name});
+}
+
+function getAllGuilds() {
+    return guildsDB.data.guilds
 }
 
 /**
@@ -54,11 +61,11 @@ export async function updateLastNewsBatchRun() {
     await patchGuildsData()
 }
 
-export async function forEachGuild(func: (newsGuild: NewsGuildSchemaInterface) => {}) {
+export async function forEachGuild(func: (newsGuild: NewsGuildSchemaInterface) => Promise<void>) {
     let cursor = await NewsGuild.find().cursor()
     for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
         // @ts-ignore
-        func(doc as NewsGuildSchemaInterface)
+        await func(doc as NewsGuildSchemaInterface)
     }
 }
 
@@ -105,6 +112,15 @@ export async function removeGuild(guild) {
 }
 
 export async function addNewsChannel(guild, channel, user, topic, language) {
+    let newTopic = {
+        topic: topic,
+        language: language,
+        date: new Date(),
+        user: {
+            id: user.id,
+            name: user.username
+        }
+    }
     let currentNewsGuild = await NewsGuild.findOne({id: guild.id})
     if (!currentNewsGuild) {
         currentNewsGuild = await NewsGuild.create({
@@ -117,33 +133,26 @@ export async function addNewsChannel(guild, channel, user, topic, language) {
     let currentChannel = currentNewsGuild.channels.find(value => value.id === channel.id);
     if (!currentChannel) {
         // in this case the channel is missing, add it.
-        currentChannel = {
+        // we cannot keep the reference of the object to change it, it's simply not linked to the document one anymore after the push.
+        // add this new channel to the list,
+        // that's important.
+        currentNewsGuild.channels.push({
             id: channel.id,
             name: channel.name,
-            topics: []
+            topics: [newTopic]
+        })
+    } else {
+        // in this case the channel list already exists.
+        currentChannel.name = channel.name // make sure to keep this up to date.
+        // does the topic already exist in the channel tho?
+        // if it does, no need to replace it.
+        let found = currentChannel.topics.find(value => value.topic === topic && value.language === language);
+        if (!found) {
+            // well in this case we should add it.
+            // create the new topic, it will be replaced with the old one.
+            currentChannel.topics.push(newTopic)
         }
-        // add this new channel to the list.
-        // that's important.
-        currentNewsGuild.channels.push(currentChannel)
     }
-    // does the topic already exist in the channel?
-    // if it does, no need to replace it.
-    let found = currentChannel.topics.find(value => value.topic === topic && value.language === language);
-    if (!found) {
-        // well in this case we should add it.
-        // create the new topic, it will be replaced with the old one.
-        let newTopic = {
-            topic: topic,
-            language: language,
-            date: new Date(),
-            user: {
-                id: user.id,
-                name: user.username
-            }
-        }
-        currentChannel.topics.push(newTopic)
-    }
-    // aight, time to save it.
     currentNewsGuild.save()
 }
 
