@@ -148,21 +148,6 @@ async function startNewsBatch() {
 export function startNewsHandler(discordClient) {
     client = discordClient;
     const hoursToRunAt = [1, 4, 7, 10, 13, 16, 19, 22];
-    if (process.env.dev) {
-        setTimeout(async () => {
-            await startNewsBatch();
-        }, 1000);
-        return;
-    }
-    setInterval(async () => {
-        let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
-        let currentHour = new Date().getHours();
-        if (hoursToRunAt.includes(currentHour)) {
-            if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
-                await startNewsBatch();
-            }
-        }
-    }, 30 * 60 * 1000);
 }
 function sendNudes(feedUrl, newsData, articleMeta) {
     try {

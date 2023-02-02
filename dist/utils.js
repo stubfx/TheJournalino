@@ -39,6 +39,8 @@ export async function fetchWithTimeout(resource, options = { timeout: 5000 }) {
     const id = setTimeout(() => controller.abort(), timeout);
     const response = await fetch(resource, {
         ...options,
+        redirect: 'follow',
+        follow: 3,
         signal: controller.signal
     });
     clearTimeout(id);
