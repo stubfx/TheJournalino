@@ -1,4 +1,3 @@
-import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
 import {DiscordAPIError, EmbedBuilder} from "discord.js";
 import * as dbAdapter from "./dbAdapter.js";
@@ -7,10 +6,11 @@ import * as LoggerHelper from "./loggerHelper.js";
 import * as Utils from "./utils.js";
 import {getPhrase} from "./datamodels/footer_labels.js";
 import {getCTAField} from "./datamodels/news_random_cta.js";
+import {scrapeThis} from "./googleNewsScraper.js";
 
 let client = null
 
-class ArticleMetadata {
+export class ArticleMetadata {
     public googleRSSFEED: null;
     public url: any;
     public title: any;
@@ -71,13 +71,16 @@ export async function findMetaEmbeds(rawGoogleArticle) {
         let url = rawGoogleArticle.description.match(/(?<=href=['"])[^'"]*/g)[0]
         LoggerHelper.dev(`Fetching ${url}`)
         try {
-            let response = await Utils.fetchWithTimeout(url)
-            let html = await response.text()
-            const $ = cheerio.load(html);
-            let title = $('meta[property="og:title"]').attr('content')
-            let description = $('meta[property="og:description"]').attr('content')
-            let imageLink = $('meta[property="og:image"]').attr('content')
-            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
+            // let response = await Utils.fetchWithTimeout(url)
+            // let html = await response.text()
+            // const $ = cheerio.load(html);
+            // let title = $('meta[property="og:title"]').attr('content')
+            // let description = $('meta[property="og:description"]').attr('content')
+            // let imageLink = $('meta[property="og:image"]').attr('content')
+            // resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
+            let articleMetadata = await scrapeThis(url);
+            articleMetadata.author = rawGoogleArticle.source['$t']
+            resolve(articleMetadata)
         } catch (e) {
             LoggerHelper.consoleError(`Fetching ${url}`)
             LoggerHelper.consoleError(e);
@@ -200,25 +203,25 @@ export function startNewsHandler(discordClient) {
     //     user.send("test")
     // })
 
-    // if (process.env.dev) {
-    //     setTimeout(async () => {
-    //         await startNewsBatch();
-    //     }, 1000)// run once every 10 seconds
-    //     return
-    // }
-    //
-    // setInterval(async () => {
-    //     let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
-    //     // is the current hour in the calendar?
-    //     let currentHour = new Date().getHours();
-    //     if (hoursToRunAt.includes(currentHour)) {
-    //         // has the batch already run at this hour?
-    //         if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
-    //             // if not, we are safe to run another batch.
-    //             await startNewsBatch();
-    //         }
-    //     }
-    // }, 30 * 60 * 1000) // this should run once every 30 mins
+    if (process.env.dev) {
+        setTimeout(async () => {
+            await startNewsBatch();
+        }, 1000)// run once every 10 seconds
+        return
+    }
+
+    setInterval(async () => {
+        let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
+        // is the current hour in the calendar?
+        let currentHour = new Date().getHours();
+        if (hoursToRunAt.includes(currentHour)) {
+            // has the batch already run at this hour?
+            if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
+                // if not, we are safe to run another batch.
+                await startNewsBatch();
+            }
+        }
+    }, 30 * 60 * 1000) // this should run once every 30 mins
 }
 
 

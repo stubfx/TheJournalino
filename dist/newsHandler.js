@@ -1,4 +1,3 @@
-import * as cheerio from "cheerio";
 import xmlParser from "xml2json";
 import { DiscordAPIError, EmbedBuilder } from "discord.js";
 import * as dbAdapter from "./dbAdapter.js";
@@ -7,8 +6,9 @@ import * as LoggerHelper from "./loggerHelper.js";
 import * as Utils from "./utils.js";
 import { getPhrase } from "./datamodels/footer_labels.js";
 import { getCTAField } from "./datamodels/news_random_cta.js";
+import { scrapeThis } from "./googleNewsScraper.js";
 let client = null;
-class ArticleMetadata {
+export class ArticleMetadata {
     googleRSSFEED;
     url;
     title;
@@ -52,13 +52,9 @@ export async function findMetaEmbeds(rawGoogleArticle) {
         let url = rawGoogleArticle.description.match(/(?<=href=['"])[^'"]*/g)[0];
         LoggerHelper.dev(`Fetching ${url}`);
         try {
-            let response = await Utils.fetchWithTimeout(url);
-            let html = await response.text();
-            const $ = cheerio.load(html);
-            let title = $('meta[property="og:title"]').attr('content');
-            let description = $('meta[property="og:description"]').attr('content');
-            let imageLink = $('meta[property="og:image"]').attr('content');
-            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']));
+            let articleMetadata = await scrapeThis(url);
+            articleMetadata.author = rawGoogleArticle.source['$t'];
+            resolve(articleMetadata);
         }
         catch (e) {
             LoggerHelper.consoleError(`Fetching ${url}`);
@@ -148,6 +144,21 @@ async function startNewsBatch() {
 export function startNewsHandler(discordClient) {
     client = discordClient;
     const hoursToRunAt = [1, 4, 7, 10, 13, 16, 19, 22];
+    if (process.env.dev) {
+        setTimeout(async () => {
+            await startNewsBatch();
+        }, 1000);
+        return;
+    }
+    setInterval(async () => {
+        let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
+        let currentHour = new Date().getHours();
+        if (hoursToRunAt.includes(currentHour)) {
+            if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
+                await startNewsBatch();
+            }
+        }
+    }, 30 * 60 * 1000);
 }
 function sendNudes(feedUrl, newsData, articleMeta) {
     try {
