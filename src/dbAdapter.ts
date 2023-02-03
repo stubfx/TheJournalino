@@ -263,11 +263,11 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
     cachedDataItem.dateFetched = currentDate
     // then we are going to iterate through the items.
     let newsDBArray = cachedDataItem.items;
-    let article = null
+    let article
     // while (newsDBArray && newsDBArray.length) {
     //     LoggerHelper.dev(`${newsDBArray.length} currently cached items for ${queryString}`)
         article = newsDBArray.shift();
-        article = await findMetaEmbeds(article)
+        article = await findMetaEmbeds(newsData, article)
         // if (!article || !article.isComplete()) {
         //     article = null
         // } else {

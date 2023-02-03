@@ -31,6 +31,13 @@ export function checkStringLength(string, max, min = 1) {
     }
     return null;
 }
+export function getTimageFromTopicValue(topicValue) {
+    if ((topicsData[topicValue])) {
+        let imageLinks = topicsData[topicValue].images;
+        return imageLinks ? rndArrayItem(imageLinks) : null;
+    }
+    return `ERROR(${topicValue})`;
+}
 export function getNameFromTopicValue(topicValue) {
     if ((topicsData[topicValue])) {
         return topicsData[topicValue].name;

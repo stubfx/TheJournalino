@@ -64,7 +64,7 @@ function getGoogleNewsFeedUrl(newsData) {
     return feedUrl
 }
 
-export async function findMetaEmbeds(rawGoogleArticle) {
+export async function findMetaEmbeds(newsData, rawGoogleArticle) {
     return new Promise(async resolve => {
         // gets the link from the Google article
         let url = rawGoogleArticle.description.match(/(?<=href=['"])[^'"]*/g)[0]
@@ -84,7 +84,7 @@ export async function findMetaEmbeds(rawGoogleArticle) {
                 // replace the title with the current one!
                 title = rawGoogleArticle.title
                 description = null
-                imageLink = null
+                imageLink = Utils.getTimageFromTopicValue(newsData.topic)
             }
             resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
         } catch (e) {
