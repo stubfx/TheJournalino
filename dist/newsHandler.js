@@ -148,7 +148,6 @@ async function startNewsBatch() {
     // reset cache for the next news cycle.
     dbAdapter.prepareForNewBatch();
     await forEachGuild(async (newsGuild) => {
-        console.log(newsGuild);
         let log = [`Running for ${newsGuild.name}`];
         let channels = newsGuild.channels;
         for (let channel of channels) {
