@@ -17,6 +17,7 @@ export class ArticleMetadata {
     public description: any;
     public imageLink: any;
     public author: any;
+
     constructor(url, title, description, imageLink, author) {
         // noinspection JSUnusedGlobalSymbols
         this.googleRSSFEED = null
@@ -198,32 +199,30 @@ export function startNewsHandler(discordClient) {
     // so, we just choose hours away from those, just to make sure.
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
 
-    scrapeThis("https://news.google.com/articles/CBMidWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbdIBeWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbS5hbXA?hl=en-US&gl=US&ceid=US%3Aen")
-
     // client.users.fetch("277957115736358922").then(user => {
     //     console.log(user)
     //     user.send("test")
     // })
 
-    // if (process.env.dev) {
-    //     setTimeout(async () => {
-    //         await startNewsBatch();
-    //     }, 1000)// run once every 10 seconds
-    //     return
-    // }
-    //
-    // setInterval(async () => {
-    //     let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
-    //     // is the current hour in the calendar?
-    //     let currentHour = new Date().getHours();
-    //     if (hoursToRunAt.includes(currentHour)) {
-    //         // has the batch already run at this hour?
-    //         if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
-    //             // if not, we are safe to run another batch.
-    //             await startNewsBatch();
-    //         }
-    //     }
-    // }, 30 * 60 * 1000) // this should run once every 30 mins
+    if (process.env.dev) {
+        setTimeout(async () => {
+            await startNewsBatch();
+        }, 20000)// run once every 10 seconds
+        return
+    }
+
+    setInterval(async () => {
+        let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
+        // is the current hour in the calendar?
+        let currentHour = new Date().getHours();
+        if (hoursToRunAt.includes(currentHour)) {
+            // has the batch already run at this hour?
+            if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
+                // if not, we are safe to run another batch.
+                await startNewsBatch();
+            }
+        }
+    }, 30 * 60 * 1000) // this should run once every 30 mins
 }
 
 

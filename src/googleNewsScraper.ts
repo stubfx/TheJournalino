@@ -4,7 +4,7 @@ import {ArticleMetadata} from "./newsHandler.js";
 
 export async function scrapeThis(url): Promise<ArticleMetadata> {
     const puppeteerConfig = {
-        headless: true,
+        headless: !!process.env.dev,
         args: puppeteer.defaultArgs().concat(['--no-sandbox', '--disable-setuid-sandbox'])
     }
     const browser = await puppeteer.launch(puppeteerConfig)
