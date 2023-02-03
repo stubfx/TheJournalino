@@ -204,25 +204,25 @@ export function startNewsHandler(discordClient) {
     //     user.send("test")
     // })
 
-    if (process.env.dev) {
-        setTimeout(async () => {
-            await startNewsBatch();
-        }, 20000)// run once every 10 seconds
-        return
-    }
-
-    setInterval(async () => {
-        let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
-        // is the current hour in the calendar?
-        let currentHour = new Date().getHours();
-        if (hoursToRunAt.includes(currentHour)) {
-            // has the batch already run at this hour?
-            if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
-                // if not, we are safe to run another batch.
-                await startNewsBatch();
-            }
-        }
-    }, 30 * 60 * 1000) // this should run once every 30 mins
+    // if (process.env.dev) {
+    //     setTimeout(async () => {
+    //         await startNewsBatch();
+    //     }, 20000)// run once every 10 seconds
+    //     return
+    // }
+    //
+    // setInterval(async () => {
+    //     let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
+    //     // is the current hour in the calendar?
+    //     let currentHour = new Date().getHours();
+    //     if (hoursToRunAt.includes(currentHour)) {
+    //         // has the batch already run at this hour?
+    //         if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
+    //             // if not, we are safe to run another batch.
+    //             await startNewsBatch();
+    //         }
+    //     }
+    // }, 30 * 60 * 1000) // this should run once every 30 mins
 }
 
 
