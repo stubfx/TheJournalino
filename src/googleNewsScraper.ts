@@ -5,7 +5,7 @@ import {ArticleMetadata} from "./newsHandler.js";
 export async function scrapeThis(url): Promise<ArticleMetadata> {
     const puppeteerConfig = {
         headless: true,
-        // args: puppeteer.defaultArgs().concat(config.puppeteerArgs).filter(Boolean)
+        args: puppeteer.defaultArgs()
     }
     const browser = await puppeteer.launch(puppeteerConfig)
     const page = await browser.newPage()

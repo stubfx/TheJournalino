@@ -144,6 +144,7 @@ async function startNewsBatch() {
 export function startNewsHandler(discordClient) {
     client = discordClient;
     const hoursToRunAt = [1, 4, 7, 10, 13, 16, 19, 22];
+    scrapeThis("https://news.google.com/articles/CBMidWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbdIBeWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbS5hbXA?hl=en-US&gl=US&ceid=US%3Aen");
 }
 function sendNudes(feedUrl, newsData, articleMeta) {
     try {
