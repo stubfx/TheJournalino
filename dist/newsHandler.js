@@ -153,7 +153,7 @@ async function startNewsBatch() {
         let channels = newsGuild.channels;
         for (let channel of channels) {
             let topics = channel.topics;
-            log.push(`Topics: ${topics ? topics.toString() : "No topics found"}`);
+            log.push(`Topics: ${topics ? topics.map(value => `${value.topic}(${value.language})`).toString() : "No topics found"}`);
             for (let currentTopic of topics) {
                 if (!currentTopic.user) {
                     currentTopic.user = { id: null, name: null };
