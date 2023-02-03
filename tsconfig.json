@@ -6,8 +6,7 @@
     "rootDir": "src",
     "outDir": "dist",
     "esModuleInterop": true,
-    "moduleResolution": "node",
-    "removeComments": true
+    "moduleResolution": "node"
   },
   "exclude": [
     "node_modules",

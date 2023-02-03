@@ -12,9 +12,14 @@ export function isValidHttpsUrl(string) {
     catch (_) {
         return false;
     }
-    return url.protocol === "https:" || !url.host.includes("_");
+    // no http.
+    // !url.host.includes("_") IS FOR DISCORD PURPOSES ONLY.
+    return /*url.protocol === "http:" || */ url.protocol === "https:" || !url.host.includes("_");
 }
 export function checkStringLength(string, max, min = 1) {
+    // Primitives are a different kind of type than objects created from within Javascript,
+    // therefore the check below will always be false.
+    // if (string instanceof String) {
     if (typeof string === "string") {
         return string.length > min && string.length < max;
     }

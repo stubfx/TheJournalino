@@ -12,15 +12,21 @@ function getTopicDataAsCommandChoices() {
         }
     }
     return tmp;
+    // return [{name: 'Top News', value: 'top'},
+    //     {name: 'Gaming', value: 'gaming'},
+    //     {name: 'Tech', value: 'tech'},
+    //     {name: 'Stocks', value: 'stocks'}]
 }
 const languages = locales;
 async function addNewsChannelInteraction(interaction) {
     let language = interaction.options.get('language');
     let topic = interaction.options.get('topic');
+    // check if the bot has permissions to write in the channel.
     let me = interaction.guild.members.me;
     let viewChannelPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.ViewChannel);
     let sendPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.SendMessages);
     if (viewChannelPermission && sendPermission) {
+        // add this channel to the news queue!
         await dbAdapter.addNewsChannel(interaction.guild, interaction.channel, interaction.user, topic.value, language.value);
         await interaction.reply({
             content: `Aight ${interaction.user.username}, ${Utils.getNameFromTopicValue(topic.value)} news will be here soon!`,
@@ -29,6 +35,7 @@ async function addNewsChannelInteraction(interaction) {
         LoggerHelper.success(`Feed added:`, `Server: ${interaction.guild.name} (${interaction.guild.id}) `, `Channel: ${interaction.channel.name} (${interaction.channel.id})`, `User: ${interaction.user.username} (${interaction.user.id})`, `Topic: ${Utils.getNameFromTopicValue(topic.value)}`, `language: ${Utils.getNameFromLanguageValue(language.value)}`);
     }
     else {
+        // no permissions in this channel, pls try again.
         await interaction.reply({
             content: `I have no permissions to send messages in this channel!`,
             ephemeral: true
@@ -56,11 +63,16 @@ async function removeNewsChannelInteraction(interaction) {
         await interaction.reply({ content: errorContent, ephemeral: true });
     }
 }
+/**
+ *
+ @type {Array<{public: boolean, data: SlashCommandBuilder, execute(Client, ChatInputCommandInteraction): Promise<void>}>}
+ */
 const commands = [{
         public: true,
         data: new SlashCommandBuilder()
             .setName('news')
             .setDescription("News setup command")
+            // server admin should handle this instead?
             .setDefaultMemberPermissions(PermissionsBitField.Default)
             .addSubcommand(subcommandGroup => subcommandGroup
             .setName("add")
@@ -82,6 +94,7 @@ const commands = [{
             .setDescription("The topic you want the news for")
             .addChoices({ name: "All", value: "all" }, ...getTopicDataAsCommandChoices())
             .setRequired(true))),
+        // .setDefaultMemberPermissions(PermissionsBitField.Default),
         async execute(client, interaction) {
             let subcommand = interaction.options.getSubcommand();
             if (subcommand === "add") {
@@ -96,7 +109,11 @@ const commands = [{
         data: new SlashCommandBuilder()
             .setName('help')
             .setDescription("HEEEEEEELP"),
+        // server admin should handle this instead?
+        // .setDefaultMemberPermissions(PermissionsBitField.All),
+        // .setDefaultMemberPermissions(PermissionsBitField.Default),
         async execute(client, interaction) {
+            // inside a command, event listener, etc.
             await interaction.reply({
                 content: "Here you can find some help " +
                     "(assuming that i remember to keep it up to date)\nhttps://thejournalino.com/help", ephemeral: false
@@ -113,6 +130,7 @@ const commands = [{
             .setMaxLength(256)
             .setRequired(true)),
         async execute(client, interaction) {
+            // inside a command, event listener, etc.
             LoggerHelper.suggestion(`Server: ${interaction.guild.name} (${interaction.guild.id})`, `Channel: ${interaction.channel.name} (${interaction.channel.id})`, `User: ${interaction.user.username} (${interaction.user.id})`, `Suggestion: ${interaction.options.get('suggestion').value}`);
             await interaction.reply({ content: "Got it, thanks!", ephemeral: true });
         }
