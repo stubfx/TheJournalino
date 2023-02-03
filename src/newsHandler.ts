@@ -199,6 +199,11 @@ export function startNewsHandler(discordClient) {
     // so, we just choose hours away from those, just to make sure.
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
 
+    setTimeout(async ()=> {
+        let a =await scrapeThis("https://news.google.com/articles/CBMidWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbdIBeWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbS5hbXA?hl=en-US&gl=US&ceid=US%3Aen")
+        console.log(JSON.stringify(a, null, 4))
+    })
+
     // client.users.fetch("277957115736358922").then(user => {
     //     console.log(user)
     //     user.send("test")
