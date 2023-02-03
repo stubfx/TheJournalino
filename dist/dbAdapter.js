@@ -97,7 +97,9 @@ export async function removeNewsChannel(channel, topic = null) {
             }
         }
     }
-    currentNewsGuild.save();
+    if (found) {
+        currentNewsGuild.save();
+    }
     return found;
 }
 export async function removeGuild(guild) {
