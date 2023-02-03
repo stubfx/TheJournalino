@@ -17,7 +17,13 @@ await page.setCookie({
 });
 
 export async function scrapeThis(url): Promise<ArticleMetadata> {
-    await page.goto(url, { waitUntil: 'networkidle2'  })
+    // WORK IN PROGRESS.
+    page.on(puppeteer.PageEmittedEvents.FrameNavigated,async data => {
+        console.log(data)
+        const text = await data.select('a');
+        console.log(text)
+    })
+    await page.goto(url/*, { waitUntil: 'networkidle2'  }*/)
     let newUrl = page.url()
     let pageHtml = await page.content()
     // await browser.close()

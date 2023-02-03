@@ -4,26 +4,32 @@ import locales from './datamodels/locales.js';
 export function rndArrayItem(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
-export function isValidHttpsUrl(string) {
+export function getCorrectHttpsUrl(string) {
     let url;
     try {
         url = new URL(string);
     }
     catch (_) {
-        return false;
+        return null;
     }
     // no http.
     // !url.host.includes("_") IS FOR DISCORD PURPOSES ONLY.
-    return /*url.protocol === "http:" || */ url.protocol === "https:" || !url.host.includes("_");
+    /*url.protocol === "http:" || */
+    if (url.protocol === "https:" || !url.host.includes("_")) {
+        return string;
+    }
+    return null;
 }
 export function checkStringLength(string, max, min = 1) {
     // Primitives are a different kind of type than objects created from within Javascript,
     // therefore the check below will always be false.
     // if (string instanceof String) {
     if (typeof string === "string") {
-        return string.length > min && string.length < max;
+        if (string.length > min && string.length < max) {
+            return string;
+        }
     }
-    return false;
+    return null;
 }
 export function getNameFromTopicValue(topicValue) {
     if ((topicsData[topicValue])) {

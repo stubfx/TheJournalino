@@ -6,25 +6,23 @@ import * as LoggerHelper from "./loggerHelper.js";
 import * as Utils from "./utils.js";
 import {getPhrase} from "./datamodels/footer_labels.js";
 import {getCTAField} from "./datamodels/news_random_cta.js";
-import {scrapeThis} from "./googleNewsScraper.js";
+import * as cheerio from "cheerio";
 
 let client = null
 
 export class ArticleMetadata {
-    public googleRSSFEED: null;
-    public url: any;
-    public title: any;
-    public description: any;
-    public imageLink: any;
-    public author: any;
+
+    public url: string|null;
+    public title: string|null;
+    public description: string|null;
+    public imageLink: string|null;
+    public author: string|null;
 
     constructor(url, title, description, imageLink, author) {
-        // noinspection JSUnusedGlobalSymbols
-        this.googleRSSFEED = null
-        this.url = url
-        this.title = title
-        this.description = description
-        this.imageLink = imageLink
+        this.url = Utils.getCorrectHttpsUrl(url)
+        this.title = Utils.checkStringLength(title, 256)
+        this.description = Utils.checkStringLength(description, 4096)
+        this.imageLink = Utils.getCorrectHttpsUrl(imageLink)
         this.author = author
     }
 
@@ -43,13 +41,13 @@ export class ArticleMetadata {
         return hash;
     }
 
-    isComplete() {
-        // check if urls are fine! that's important.
-        return !!(Utils.isValidHttpsUrl(this.url)
-            && Utils.checkStringLength(this.title, 256)
-            && Utils.checkStringLength(this.description, 4096)
-            && Utils.isValidHttpsUrl(this.imageLink))
-    }
+    // isComplete() {
+    //     // check if urls are fine! that's important.
+    //     return !!(Utils.getCorrectHttpsUrl(this.url)
+    //         && Utils.checkStringLength(this.title, 256)
+    //         && Utils.checkStringLength(this.description, 4096)
+    //         && Utils.getCorrectHttpsUrl(this.imageLink))
+    // }
 }
 
 /**
@@ -72,16 +70,23 @@ export async function findMetaEmbeds(rawGoogleArticle) {
         let url = rawGoogleArticle.description.match(/(?<=href=['"])[^'"]*/g)[0]
         LoggerHelper.dev(`Fetching ${url}`)
         try {
-            // let response = await Utils.fetchWithTimeout(url)
-            // let html = await response.text()
-            // const $ = cheerio.load(html);
-            // let title = $('meta[property="og:title"]').attr('content')
-            // let description = $('meta[property="og:description"]').attr('content')
-            // let imageLink = $('meta[property="og:image"]').attr('content')
-            // resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
-            let articleMetadata = await scrapeThis(url);
-            articleMetadata.author = rawGoogleArticle.source['$t']
-            resolve(articleMetadata)
+            // let articleMetadata = await scrapeThis(url);
+            // articleMetadata.author = rawGoogleArticle.source['$t']
+            // resolve(articleMetadata)
+            let response = await Utils.fetchWithTimeout(url)
+            let html = await response.text()
+            const $ = cheerio.load(html);
+            let title = $('meta[property="og:title"]').attr('content')
+            let description = $('meta[property="og:description"]').attr('content')
+            let imageLink = $('meta[property="og:image"]').attr('content')
+            if (title === "Google News") {
+                // in this case the article should be compact
+                // replace the title with the current one!
+                title = rawGoogleArticle.title
+                description = null
+                imageLink = null
+            }
+            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
         } catch (e) {
             LoggerHelper.consoleError(`Fetching ${url}`)
             LoggerHelper.consoleError(e);
@@ -199,35 +204,35 @@ export function startNewsHandler(discordClient) {
     // so, we just choose hours away from those, just to make sure.
     const hoursToRunAt = [1, /*2.45*/ 4, 7, 10, /*14.45*/ 13, 16, 19, 22]
 
-    setTimeout(async ()=> {
-        let a =await scrapeThis("https://news.google.com/articles/CBMidWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbdIBeWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbS5hbXA?hl=en-US&gl=US&ceid=US%3Aen")
-        console.log(JSON.stringify(a, null, 4))
-    })
+    // setTimeout(async ()=> {
+    //     let a =await scrapeThis("https://news.google.com/articles/CBMidWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbdIBeWh0dHBzOi8vd3d3LmZveG5ld3MuY29tL3BvbGl0aWNzL2lsaGFuLW9tYXItZ2V0cy1ib290LWhvdXNlLXZvdGVzLW9mZi1mb3JlaWduLWFmZmFpcnMtY29tbWl0dGVlLWRlbW9jcmF0cy1jaXRlLXJhY2lzbS5hbXA?hl=en-US&gl=US&ceid=US%3Aen")
+    //     // console.log(JSON.stringify(a, null, 4))
+    // })
 
     // client.users.fetch("277957115736358922").then(user => {
     //     console.log(user)
     //     user.send("test")
     // })
 
-    // if (process.env.dev) {
-    //     setTimeout(async () => {
-    //         await startNewsBatch();
-    //     }, 20000)// run once every 10 seconds
-    //     return
-    // }
+    if (process.env.dev) {
+        setTimeout(async () => {
+            await startNewsBatch();
+        }, 1000)// run once every 10 seconds
+        return
+    }
     //
-    // setInterval(async () => {
-    //     let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
-    //     // is the current hour in the calendar?
-    //     let currentHour = new Date().getHours();
-    //     if (hoursToRunAt.includes(currentHour)) {
-    //         // has the batch already run at this hour?
-    //         if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
-    //             // if not, we are safe to run another batch.
-    //             await startNewsBatch();
-    //         }
-    //     }
-    // }, 30 * 60 * 1000) // this should run once every 30 mins
+    setInterval(async () => {
+        let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();
+        // is the current hour in the calendar?
+        let currentHour = new Date().getHours();
+        if (hoursToRunAt.includes(currentHour)) {
+            // has the batch already run at this hour?
+            if (runLastTimeAt && (currentHour !== runLastTimeAt.getHours())) {
+                // if not, we are safe to run another batch.
+                await startNewsBatch();
+            }
+        }
+    }, 30 * 60 * 1000) // this should run once every 30 mins
 }
 
 
@@ -276,7 +281,6 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
             // .setImage(articleMeta.imageLink)
             // "https://ogden_images.s3.amazonaws.com/www.thealpenanews.com/images/2023/01/25214647/Alpena-basketball-Easton-Srebnik-vs-Sault-Ste-Marie-WEB-667x500.jpg"
             // "https://ogden_images.s3.amazonaws.com/www.thealpenanews.com/images/2023/01/25214647/Alpena-basketball-Easton-Srebnik-vs-Sault-Ste-Marie-WEB-667x500.jpg"
-            .setImage(articleMeta.imageLink)
             // .setTimestamp()
             .setFooter({text: getPhrase()/*, iconURL: 'https://i.imgur.com/AfFp7pu.png'*/});
 
@@ -287,6 +291,13 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
                 {name: 'Author', value: articleMeta.author, inline: true},
                 {name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true},
             )
+        }
+
+        if (articleMeta.imageLink) {
+            msgEmbed.setImage(articleMeta.imageLink)
+        } else {
+            // in this case just make it pretty!
+            // msgEmbed.setImage("https://i.imgur.com/AfFp7pu.png")
         }
 
         if (Math.random() < 0.3) {

@@ -262,17 +262,17 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
     // then we are going to iterate through the items.
     let newsDBArray = cachedDataItem.items;
     let article = null
-    while (newsDBArray && newsDBArray.length) {
-        LoggerHelper.dev(`${newsDBArray.length} currently cached items for ${queryString}`)
+    // while (newsDBArray && newsDBArray.length) {
+    //     LoggerHelper.dev(`${newsDBArray.length} currently cached items for ${queryString}`)
         article = newsDBArray.shift();
         article = await findMetaEmbeds(article)
-        if (!article || !article.isComplete()) {
-            article = null
-        } else {
-            // in this case we are going out with the article!
-            break
-        }
-    }
+        // if (!article || !article.isComplete()) {
+        //     article = null
+        // } else {
+        //     // in this case we are going out with the article!
+        //     break
+        // }
+    // }
     // this is to make sure that if something goes wrong with this news batch, we got rid of the article
     // so in case the bot crashes, nobody will see it twice.
     await patchNewsData()
