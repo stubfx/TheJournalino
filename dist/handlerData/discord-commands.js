@@ -201,7 +201,7 @@ const commands = [{
             }
             else if (subcommand === "broadcast") {
                 let message = interaction.options.get('message');
-                broadcastMessage(message.value).then(r => { console.log("Broadcast done."); });
+                broadcastMessage(message.value).then(() => { console.log("Broadcast done."); });
                 await interaction.reply({ content: "I hope you know what you are doing.", ephemeral: true });
             }
         }
