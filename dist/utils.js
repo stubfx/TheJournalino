@@ -15,7 +15,7 @@ export function getCorrectHttpsUrl(string) {
     // no http.
     // !url.host.includes("_") IS FOR DISCORD PURPOSES ONLY.
     /*url.protocol === "http:" || */
-    if (url.protocol === "https:" || !url.host.includes("_")) {
+    if (url.protocol === "https:" && !url.host.includes("_") && !url.host.includes(" ")) {
         return string;
     }
     return null;
