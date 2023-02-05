@@ -81,7 +81,7 @@ export async function removeNewsChannel(channel, topic = null) {
 }
 
 export async function removeGuild(guild) {
-    NewsGuild.findOneAndUpdate({id : guild.id})
+    NewsGuild.findOneAndDelete({id : guild.id})
 }
 
 export async function addNewsChannel(guild, channel, user, topic, language) {

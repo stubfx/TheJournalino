@@ -11,9 +11,6 @@ export async function init() {
     mongoose.set('strictQuery', false);
     mongooseConnection = await mongoose.connect(process.env.db_guilds_conn_string, { dbName: process.env.db_guilds_name });
 }
-function getAllGuilds() {
-    return guildsDB.data.guilds;
-}
 /**
  *
  * @return {Date}
@@ -76,7 +73,7 @@ export async function removeNewsChannel(channel, topic = null) {
     return found;
 }
 export async function removeGuild(guild) {
-    NewsGuild.findOneAndUpdate({ id: guild.id });
+    NewsGuild.findOneAndDelete({ id: guild.id });
 }
 export async function addNewsChannel(guild, channel, user, topic, language) {
     let newTopic = {
