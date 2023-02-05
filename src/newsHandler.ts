@@ -63,6 +63,14 @@ export class ArticleMetadata {
         this._author = author
     }
 
+    isComplete() {
+        // check if urls are fine! that's important.
+        return !!(Utils.getCorrectHttpsUrl(this.url)
+            && Utils.checkStringLength(this.title, 256)
+            && Utils.checkStringLength(this.description, 4096)
+            && Utils.getCorrectHttpsUrl(this.imageLink))
+    }
+
     /**
      * not used yet, may be useful later while working with multithreading
      * @return {number}
