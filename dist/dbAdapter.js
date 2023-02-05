@@ -4,36 +4,9 @@ import { rndArrayItem } from "./utils.js";
 import { findMetaEmbeds } from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
 import mongoose from "mongoose";
-import { NewsGuild, NewsGuildSchema } from "./schemas.js";
+import { NewsGuild } from "./schemas.js";
 const DEFAULT_TOPIC = "top";
 let mongooseConnection = null;
-export async function migrateToMongo() {
-    const NewsGuild = mongoose.model('newsGuild', NewsGuildSchema);
-    let toSend = [];
-    let allGuilds = getAllGuilds();
-    for (let allGuildsKey in allGuilds) {
-        let currentGuild = allGuilds[allGuildsKey];
-        let channels = currentGuild.channels;
-        let channelsToSend = [];
-        for (let channelsKey in channels) {
-            let currentChannel = channels[channelsKey];
-            currentChannel.id = channelsKey;
-            currentChannel.name = null;
-            channelsToSend.push(currentChannel);
-            currentChannel.topics.forEach(value => {
-                value.date = new Date();
-            });
-        }
-        toSend.push(new NewsGuild({
-            id: allGuildsKey,
-            name: currentGuild.name,
-            channels: channelsToSend,
-            date: new Date()
-        }));
-    }
-    await NewsGuild.bulkSave(toSend);
-    console.log("DONE.");
-}
 export async function init() {
     mongoose.set('strictQuery', false);
     mongooseConnection = await mongoose.connect(process.env.db_guilds_conn_string, { dbName: process.env.db_guilds_name });
@@ -103,7 +76,7 @@ export async function removeNewsChannel(channel, topic = null) {
     return found;
 }
 export async function removeGuild(guild) {
-    NewsGuild.deleteOne({ id: guild.id });
+    NewsGuild.findOneAndUpdate({ id: guild.id });
 }
 export async function addNewsChannel(guild, channel, user, topic, language) {
     let newTopic = {
