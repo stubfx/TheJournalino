@@ -325,7 +325,7 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
 export async function broadcastMessage(message: string) {
     await forEachGuild(async newsGuild => {
         let channels = newsGuild.channels
-        if (channels || channels.length > 0) {
+        if (channels && channels.length > 0) {
             let channelId = channels[0].id
             try {
                 client.channels.fetch(channelId)
