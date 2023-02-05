@@ -11,19 +11,56 @@ import * as cheerio from "cheerio";
 let client = null
 
 export class ArticleMetadata {
+    get author(): string | null {
+        return this._author;
+    }
 
-    public url: string|null;
-    public title: string|null;
-    public description: string|null;
-    public imageLink: string|null;
-    public author: string|null;
+    set author(value: string | null) {
+        this._author = value;
+    }
+    get imageLink(): string | null {
+        return Utils.getCorrectHttpsUrl(this._imageLink) || Utils.getTimageFromTopicValue(this.newsData.topic);
+    }
 
-    constructor(url, title, description, imageLink, author) {
-        this.url = Utils.getCorrectHttpsUrl(url)
-        this.title = Utils.checkStringLength(title, 256)
-        this.description = Utils.checkStringLength(description, 4096)
-        this.imageLink = Utils.getCorrectHttpsUrl(imageLink)
-        this.author = author
+    set imageLink(value: string | null) {
+        this._imageLink = value;
+    }
+    get description(): string | null {
+        return this._description;
+    }
+
+    set description(value: string | null) {
+        this._description = value;
+    }
+    get title(): string | null {
+        return this._title;
+    }
+
+    set title(value: string | null) {
+        this._title = value;
+    }
+    get url(): string | null {
+        return this._url;
+    }
+
+    set url(value: string | null) {
+        this._url = value;
+    }
+
+    private newsData: NewsData;
+    private _url: string | null;
+    private _title: string | null;
+    private _description: string | null;
+    private _imageLink: string | null;
+    private _author: string | null;
+
+    constructor(newsData: NewsData, url, title, description, imageLink, author) {
+        this.newsData = newsData
+        this._url = Utils.getCorrectHttpsUrl(url)
+        this._title = Utils.checkStringLength(title, 256)
+        this._description = Utils.checkStringLength(description, 4096)
+        this._imageLink = Utils.getCorrectHttpsUrl(imageLink)
+        this._author = author
     }
 
     /**
@@ -40,14 +77,6 @@ export class ArticleMetadata {
         }
         return hash;
     }
-
-    // isComplete() {
-    //     // check if urls are fine! that's important.
-    //     return !!(Utils.getCorrectHttpsUrl(this.url)
-    //         && Utils.checkStringLength(this.title, 256)
-    //         && Utils.checkStringLength(this.description, 4096)
-    //         && Utils.getCorrectHttpsUrl(this.imageLink))
-    // }
 }
 
 /**
@@ -80,19 +109,50 @@ export async function findMetaEmbeds(newsData, rawGoogleArticle) {
             let description = $('meta[property="og:description"]').attr('content')
             let imageLink = $('meta[property="og:image"]').attr('content')
             if (title === "Google News") {
-                // in this case the article should be compact
-                // replace the title with the current one!
-                title = rawGoogleArticle.title
-                description = null
-                imageLink = Utils.getTimageFromTopicValue(newsData.topic)
+                // look for the specific article pls.
+                let googleNewsArticleMetaEmbeds = await findGoogleNewsArticleMetaEmbeds(url, newsData, $);
+                if (googleNewsArticleMetaEmbeds) {
+                    // found the article <3
+                    // for legal reasons, im afraid this needs to remain the Google's news url.
+                    googleNewsArticleMetaEmbeds.url = url
+                    googleNewsArticleMetaEmbeds.author = rawGoogleArticle.source['$t']
+                    resolve(googleNewsArticleMetaEmbeds)
+                }
             }
-            resolve(new ArticleMetadata(url, title, description, imageLink, rawGoogleArticle.source['$t']))
+            resolve(new ArticleMetadata(newsData, url, title, description, imageLink, rawGoogleArticle.source['$t']))
         } catch (e) {
             LoggerHelper.consoleError(`Fetching ${url}`)
             LoggerHelper.consoleError(e);
             resolve(null)
         }
     })
+}
+
+export async function findGoogleNewsArticleMetaEmbeds(googleNewsUrl: String, newsData: NewsData, googleNewsScrapedPage: cheerio.CheerioAPI):Promise<ArticleMetadata|null> {
+    try {
+        // gets the link from the Google article
+        let linkSelector = googleNewsScrapedPage("a");
+        let attributes = linkSelector.attr();
+        if (attributes && attributes.jsname === "tljFtd") {
+            // ok, we should have found the link.
+            let realNewsUrl = Utils.getCorrectHttpsUrl(linkSelector.text());
+            if (realNewsUrl) {
+                // URL FOUND. (Hopefully :/)
+                let response = await Utils.fetchWithTimeout(realNewsUrl)
+                let html = await response.text()
+                const $ = cheerio.load(html);
+                let title = $('meta[property="og:title"]').attr('content')
+                let description = $('meta[property="og:description"]').attr('content')
+                let imageLink = $('meta[property="og:image"]').attr('content')
+                return new ArticleMetadata(newsData, googleNewsUrl, title, description, imageLink, null)
+            }
+        }
+        return null
+    } catch (e) {
+        LoggerHelper.consoleError(`Fetching ${googleNewsUrl}`)
+        LoggerHelper.consoleError(e);
+        return null
+    }
 }
 
 async function sendArticleFromCache(googleNewsFeedUrl, newsData) {
@@ -292,8 +352,9 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
             )
         }
 
-        if (articleMeta.imageLink) {
-            msgEmbed.setImage(articleMeta.imageLink)
+        let imageLink = articleMeta.imageLink;
+        if (imageLink) {
+            msgEmbed.setImage(imageLink)
         } else {
             // in this case just make it pretty!
             // msgEmbed.setImage("https://i.imgur.com/AfFp7pu.png")
@@ -318,10 +379,10 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
                     `Channel: ${newsData.channelName}(${newsData.channelId})`)
                 // log the error details, only if is not a common one.
                 if (!skipError.includes(reason.code.toString())) {
-                    LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
+                    LoggerHelper.error(feedUrl, articleMeta.url, imageLink, reason)
                 }
             } else {
-                LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
+                LoggerHelper.error(feedUrl, articleMeta.url, imageLink, reason)
             }
         });
     } catch (e) {
