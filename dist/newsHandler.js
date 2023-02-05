@@ -306,4 +306,22 @@ function sendNudes(feedUrl, newsData, articleMeta) {
         LoggerHelper.error(`ChannelID: ${newsData.channelId}`, feedUrl, e);
     }
 }
+export async function broadcastMessage(message) {
+    await forEachGuild(async (newsGuild) => {
+        let channels = newsGuild.channels;
+        if (channels || channels.length > 0) {
+            let channelId = channels[0].id;
+            try {
+                client.channels.fetch(channelId)
+                    .then(async (channel) => {
+                    await channel.send(message);
+                });
+            }
+            catch (e) {
+                // in case of error, keep going.
+                LoggerHelper.error(e);
+            }
+        }
+    });
+}
 //# sourceMappingURL=newsHandler.js.map

@@ -59,7 +59,7 @@ export async function findMetaEmbeds(newsData, rawGoogleArticle) {
     })
 }
 
-export async function findGoogleNewsArticleMetaEmbeds(googleNewsUrl: String, newsData: NewsData, googleNewsScrapedPage: cheerio.CheerioAPI):Promise<ArticleMetadata|null> {
+export async function findGoogleNewsArticleMetaEmbeds(googleNewsUrl: String, newsData: NewsData, googleNewsScrapedPage: cheerio.CheerioAPI): Promise<ArticleMetadata | null> {
     try {
         // gets the link from the Google article
         let linkSelector = googleNewsScrapedPage("a");
@@ -319,4 +319,23 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
         // just to make sure.
         LoggerHelper.error(`ChannelID: ${newsData.channelId}`, feedUrl, e)
     }
+}
+
+
+export async function broadcastMessage(message: string) {
+    await forEachGuild(async newsGuild => {
+        let channels = newsGuild.channels
+        if (channels || channels.length > 0) {
+            let channelId = channels[0].id
+            try {
+                client.channels.fetch(channelId)
+                    .then(async channel => {
+                        await channel.send(message);
+                    })
+            } catch (e) {
+                // in case of error, keep going.
+                LoggerHelper.error(e)
+            }
+        }
+    })
 }

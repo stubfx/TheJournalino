@@ -11,6 +11,7 @@ import * as dbAdapter from "../dbAdapter.js";
 import topicsData from "../datamodels/topicsData.js";
 import * as LoggerHelper from "../loggerHelper.js";
 import * as Utils from "../utils.js";
+import {broadcastMessage} from "../newsHandler.js";
 
 function getTopicDataAsCommandChoices() {
     let tmp = []
@@ -184,7 +185,8 @@ const commands = [{
                 .setDescription("The id of the guild you want the channels for")
                 .setRequired(true)
             )
-        ).addSubcommand(subcommandGroup => subcommandGroup
+        )
+        .addSubcommand(subcommandGroup => subcommandGroup
             .setName("send")
             .setDescription("Send text message to a specific channel")
             .addStringOption(builder => builder
@@ -195,6 +197,15 @@ const commands = [{
             .addStringOption(builder => builder
                 .setName("string")
                 .setDescription("What to send")
+                .setRequired(true)
+            )
+        )
+        .addSubcommand(subcommandGroup => subcommandGroup
+            .setName("broadcast")
+            .setDescription("Send a broadcast message to all guilds")
+            .addStringOption(builder => builder
+                .setName("message")
+                .setDescription("message")
                 .setRequired(true)
             )
         ),
@@ -221,6 +232,10 @@ const commands = [{
                     await channel.send(stringToSend.value);
                 }).catch(LoggerHelper.error);
             await interaction.reply({content: "Done!", ephemeral: true});
+        } else if (subcommand === "broadcast") {
+            let message = interaction.options.get('message');
+            broadcastMessage(message.value).then(() => {console.log("Broadcast done.")})
+            await interaction.reply({content: "I hope you know what you are doing.", ephemeral: true});
         }
     }
 }]
