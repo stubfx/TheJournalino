@@ -1,4 +1,3 @@
-import xmlParser from "xml2json";
 import { DiscordAPIError, EmbedBuilder } from "discord.js";
 import * as dbAdapter from "./dbAdapter.js";
 import { forEachGuild } from "./dbAdapter.js";
@@ -7,83 +6,17 @@ import * as Utils from "./utils.js";
 import { getPhrase } from "./datamodels/footer_labels.js";
 import { getCTAField } from "./datamodels/news_random_cta.js";
 import * as cheerio from "cheerio";
+import { ArticleMetadata } from "./models/ArticleMetadata.js";
 let client = null;
-export class ArticleMetadata {
-    get author() {
-        return this._author;
-    }
-    set author(value) {
-        this._author = value;
-    }
-    get imageLink() {
-        return Utils.getCorrectHttpsUrl(this._imageLink) || Utils.getTimageFromTopicValue(this.newsData.topic);
-    }
-    set imageLink(value) {
-        this._imageLink = value;
-    }
-    get description() {
-        return this._description;
-    }
-    set description(value) {
-        this._description = value;
-    }
-    get title() {
-        return this._title;
-    }
-    set title(value) {
-        this._title = value;
-    }
-    get url() {
-        return this._url;
-    }
-    set url(value) {
-        this._url = value;
-    }
-    newsData;
-    _url;
-    _title;
-    _description;
-    _imageLink;
-    _author;
-    constructor(newsData, url, title, description, imageLink, author) {
-        this.newsData = newsData;
-        this._url = Utils.getCorrectHttpsUrl(url);
-        this._title = Utils.checkStringLength(title, 256);
-        this._description = Utils.checkStringLength(description, 4096);
-        this._imageLink = Utils.getCorrectHttpsUrl(imageLink);
-        this._author = author;
-    }
-    isComplete() {
-        // check if urls are fine! that's important.
-        return !!(Utils.getCorrectHttpsUrl(this.url)
-            && Utils.checkStringLength(this.title, 256)
-            && Utils.checkStringLength(this.description, 4096)
-            && Utils.getCorrectHttpsUrl(this.imageLink));
-    }
-    /**
-     * not used yet, may be useful later while working with multithreading
-     * @return {number}
-     */
-    hashCode() {
-        let string = this.toString();
-        let hash = 0;
-        for (let i = 0; i < string.length; i++) {
-            let code = string.charCodeAt(i);
-            hash = ((hash << 5) - hash) + code;
-            hash = hash & hash; // Convert to 32bit integer
-        }
-        return hash;
-    }
-}
 /**
  *
  * @param {NewsData}newsData
  * @return {string}
  */
 function getGoogleNewsFeedUrl(newsData) {
-    const prefix = "https://news.google.com/rss/search?q=";
+    const prefix = "https://rss.thejournalino.com/?feed=google&p1=";
     // const postfix = '&hl=en-US&gl=US&ceid=US:en'
-    const postfix = `&hl=${newsData.language}`;
+    const postfix = `&p2=${newsData.language}`;
     let feedUrl = prefix + dbAdapter.getCurrentTopicQuery(newsData.topic) + postfix;
     LoggerHelper.dev(`GENERATED RSS FEED: ${feedUrl}`);
     return feedUrl;
@@ -165,8 +98,7 @@ async function retrieveGoogleArticles(googleNewsFeedUrl) {
     try {
         LoggerHelper.dev(`Fetching Google for ${googleNewsFeedUrl}`);
         let response = await Utils.fetchWithTimeout(googleNewsFeedUrl);
-        let rssText = await response.text();
-        let news = JSON.parse(xmlParser.toJson(rssText, null))['rss']['channel']['item'];
+        let news = await response.json();
         // if this array is not worth fetching for...
         if (!news) {
             // then im sry my little friend.
