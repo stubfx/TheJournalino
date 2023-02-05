@@ -329,8 +329,9 @@ function sendNudes(feedUrl, newsData, articleMeta) {
             // { name: '\u200B', value: '\u200B' },
             { name: 'Author', value: articleMeta.author, inline: true }, { name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true });
         }
-        if (articleMeta.imageLink) {
-            msgEmbed.setImage(articleMeta.imageLink);
+        let imageLink = articleMeta.imageLink;
+        if (imageLink) {
+            msgEmbed.setImage(imageLink);
         }
         else {
             // in this case just make it pretty!
@@ -353,11 +354,11 @@ function sendNudes(feedUrl, newsData, articleMeta) {
                 LoggerHelper.error(reason, `Guild: ${newsData.guildName}(${newsData.guildId})`, `Channel: ${newsData.channelName}(${newsData.channelId})`);
                 // log the error details, only if is not a common one.
                 if (!skipError.includes(reason.code.toString())) {
-                    LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason);
+                    LoggerHelper.error(feedUrl, articleMeta.url, imageLink, reason);
                 }
             }
             else {
-                LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason);
+                LoggerHelper.error(feedUrl, articleMeta.url, imageLink, reason);
             }
         });
     }
