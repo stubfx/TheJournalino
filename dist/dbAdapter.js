@@ -241,7 +241,7 @@ async function getCachedStackNewsSanitizedArticle(newsData, queryString) {
     // then we are going to iterate through the items.
     let newsDBArray = cachedDataItem.items;
     let article = null;
-    if (!newsDBArray) {
+    if (newsDBArray) {
         // while (newsDBArray && newsDBArray.length) {
         //     LoggerHelper.dev(`${newsDBArray.length} currently cached items for ${queryString}`)
         article = newsDBArray.shift();
