@@ -71,3 +71,7 @@ export async function fetchWithTimeout(resource, options = {timeout: 5000}) {
     clearTimeout(id);
     return response;
 }
+
+export function getDiscordSanitizedMessage(text: string) {
+    return text.replace(/[^a-zA-Z0-9: ()?!*]/g, "")
+}

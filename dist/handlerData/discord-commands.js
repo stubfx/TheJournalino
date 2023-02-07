@@ -136,6 +136,46 @@ const commands = [{
             await interaction.reply({ content: "Got it, thanks!", ephemeral: true });
         }
     }, {
+        public: true,
+        data: new SlashCommandBuilder()
+            .setName('promo')
+            .setDescription("Promote your server!")
+            .addStringOption(builder => builder
+            .setName("topic")
+            .setDescription("The tag you want to promote your server with.")
+            .addChoices(...getTopicDataAsCommandChoices())
+            .setMaxLength(256)
+            .setRequired(true)).addStringOption(builder => builder
+            .setName("text")
+            .setDescription("Have fun, use emojis!")
+            .setMaxLength(100)
+            .setRequired(true)),
+        async execute(client, interaction) {
+            // inside a command, event listener, etc.
+            let topic = interaction.options.get('topic').value;
+            let text = interaction.options.get('text').value;
+            text = Utils.getDiscordSanitizedMessage(text);
+            client.guilds.fetch(interaction.guild.id).then(async (guild) => {
+                let invite = await guild.invites.create(interaction.channel.id, { maxAge: 0, reason: "Promo invite" }); // invite should last forever.
+                let inviteResult = await dbAdapter.addGuildInvite(guild.id, topic, text, invite);
+                if (inviteResult) {
+                    LoggerHelper.promo(`Server: ${interaction.guild.name} (${interaction.guild.id})`, `Channel: ${interaction.channel.name} (${interaction.channel.id})`, `User: ${interaction.user.username} (${interaction.user.id})`, `PROMO: \n${text}\n${invite}`);
+                    await interaction.reply({
+                        content: "This command is still in development, will be ready in the next few days <3\n" +
+                            "however your invite will be added to other servers news as long as you have at least a news channel subscribed to any news(/news command)!\n\n"
+                            + `Aight! This is what other people will see in their ${Utils.getNameFromTopicValue(topic)} channel:\n\n${text}\n${invite}`,
+                        ephemeral: true
+                    });
+                }
+                else {
+                    await interaction.reply({
+                        content: `You must subscribe to at least a news channel before you can promote this server.`,
+                        ephemeral: true
+                    });
+                }
+            });
+        }
+    }, {
         public: false,
         data: new SlashCommandBuilder()
             .setName('guild')
@@ -178,7 +218,10 @@ const commands = [{
             if (subcommand === "newsinfo") {
                 let guildId = interaction.options.get('id');
                 let guild = await dbAdapter.findGuild(guildId.value);
-                await interaction.reply({ embeds: [LoggerHelper.getLogEmbed(0x1ABC9C, JSON.stringify(guild, null, 4), false)], ephemeral: true });
+                await interaction.reply({
+                    embeds: [LoggerHelper.getLogEmbed(0x1ABC9C, JSON.stringify(guild, null, 4), false)],
+                    ephemeral: true
+                });
             }
             else if (subcommand === "channels") {
                 let guildId = interaction.options.get('id');
@@ -201,7 +244,9 @@ const commands = [{
             }
             else if (subcommand === "broadcast") {
                 let message = interaction.options.get('message');
-                broadcastMessage(message.value).then(() => { console.log("Broadcast done."); });
+                broadcastMessage(message.value).then(() => {
+                    console.log("Broadcast done.");
+                });
                 await interaction.reply({ content: "I hope you know what you are doing.", ephemeral: true });
             }
         }

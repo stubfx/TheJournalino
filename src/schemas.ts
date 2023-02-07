@@ -3,6 +3,11 @@ import mongoose from "mongoose";
 export interface NewsGuildSchemaInterface {
     id: String,
     name: String,
+    invite: {
+        topic: String,
+        url: String,
+        text: String
+    }
     channels: [{
         id: String,
         name: String,
@@ -24,6 +29,11 @@ export interface NewsGuildSchemaInterface {
 export const NewsGuildSchema = new mongoose.Schema({
     id: String,
     name: String,
+    invite: {
+        topic: String,
+        url: String,
+        text: String
+    },
     channels: [{
         id: String,
         name: String,

@@ -196,12 +196,12 @@ export function startNewsHandler(discordClient) {
     //     console.log(user)
     //     user.send("test")
     // })
-    if (process.env.dev) {
-        setTimeout(async () => {
-            await startNewsBatch();
-        }, 1000); // run once every 10 seconds
-        return;
-    }
+    // if (process.env.dev) {
+    //     setTimeout(async () => {
+    //         await startNewsBatch();
+    //     }, 1000)// run once every 10 seconds
+    //     return
+    // }
     //
     setInterval(async () => {
         let runLastTimeAt = dbAdapter.getLastNewsBatchRunTime();

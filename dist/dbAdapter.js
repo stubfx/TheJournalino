@@ -1,6 +1,6 @@
 import { guildsDB, newsDB } from "./lowdb.js";
 import topicsData from "./datamodels/topicsData.js";
-import { rndArrayItem } from "./utils.js";
+import * as Utils from "./utils.js";
 import { findMetaEmbeds } from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
 import mongoose from "mongoose";
@@ -31,6 +31,29 @@ export async function forEachGuild(func) {
 }
 export async function findGuild(guildId) {
     return NewsGuild.findOne({ id: guildId });
+}
+export async function getSubscribedGuild(guildId) {
+    let currentNewsGuild = await findGuild(guildId);
+    if (currentNewsGuild && currentNewsGuild.channels && currentNewsGuild.channels.length > 0) {
+        return currentNewsGuild;
+    }
+    else {
+        return null;
+    }
+}
+export async function addGuildInvite(guildId, topic, text, inviteUrl) {
+    let subscribedGuild = await getSubscribedGuild(guildId);
+    if (subscribedGuild) {
+        // ok add the invite then.
+        subscribedGuild.invite = {
+            topic: topic,
+            url: inviteUrl,
+            text: Utils.getDiscordSanitizedMessage(text)
+        };
+        await subscribedGuild.save();
+        return true;
+    }
+    return false;
 }
 export async function removeNewsChannel(channel, topic = null) {
     let found = false;
@@ -254,7 +277,7 @@ export function getCurrentTopicQuery(topic) {
     }
     else {
         // well, looks like we need a new one!
-        let rndQuery = rndArrayItem(topicData.queries);
+        let rndQuery = Utils.rndArrayItem(topicData.queries);
         // replace spaces with +
         rndQuery = rndQuery.trim().split(/ +/g).join("+");
         topicsCache[topic] = rndQuery;

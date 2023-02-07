@@ -68,6 +68,16 @@ export function info(...data) {
     })
         .catch(console.error);
 }
+export function promo(...data) {
+    console.log(data);
+    client.channels.fetch(process.env.discord_log_promo_channel_id)
+        .then(async (channel) => {
+        // await channel.send({embeds: [exampleEmbed]});
+        // await channel.send(`\`${data}\``);
+        await channel.send({ embeds: [getLogEmbed(0x3498DB, data)] });
+    })
+        .catch(console.error);
+}
 export function dev(data) {
     console.log(data);
 }
