@@ -169,7 +169,7 @@ const commands = [{
                 }
                 else {
                     await interaction.reply({
-                        content: `You must subscribe to at least a news channel before you can promote this server.`,
+                        content: `You must subscribe to at least a news channel before you can promote this server. Use /news command in any channel!`,
                         ephemeral: true
                     });
                 }
