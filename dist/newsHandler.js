@@ -150,11 +150,11 @@ async function startNewsBatch() {
     // reset cache for the next news cycle.
     dbAdapter.prepareForNewBatch();
     await forEachGuild(async (newsGuild) => {
-        let log = [`Running for ${newsGuild.name}`];
+        // let log = [`Running for ${newsGuild.name}`]
         let channels = newsGuild.channels;
         for (let channel of channels) {
             let topics = channel.topics;
-            log.push(`Topics: ${topics ? topics.map(value => `${value.topic}(${value.language})`).toString() : "No topics found"}`);
+            // log.push(`Topics: ${topics ? topics.map<String>(value => `${value.topic}(${value.language})`).toString() : "No topics found"}`)
             for (let currentTopic of topics) {
                 if (!currentTopic.user) {
                     currentTopic.user = { id: null, name: null };
@@ -177,7 +177,7 @@ async function startNewsBatch() {
                 }
             }
         }
-        LoggerHelper.info(...log);
+        // LoggerHelper.info(...log)
     });
     LoggerHelper.info('------------------------ DONE ------------------------');
     await dbAdapter.patchData();
