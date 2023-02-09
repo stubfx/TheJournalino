@@ -5,6 +5,7 @@ import topicsData from "../datamodels/topicsData.js";
 import * as LoggerHelper from "../loggerHelper.js";
 import * as Utils from "../utils.js";
 import { broadcastMessage } from "../newsHandler.js";
+import { disableGuildPromo } from "../dbAdapter.js";
 function getTopicDataAsCommandChoices() {
     let tmp = [];
     for (let topicsDataKey in topicsData) {
@@ -63,6 +64,36 @@ async function removeNewsChannelInteraction(interaction) {
     else {
         await interaction.reply({ content: errorContent, ephemeral: true });
     }
+}
+function onPromoCommandAdd(client, interaction, topic, text) {
+    client.guilds.fetch(interaction.guild.id).then(async (guild) => {
+        let invite = await guild.invites.create(interaction.channel.id, { maxAge: 0, reason: "Promo invite" }); // invite should last forever.
+        let inviteResult = await dbAdapter.addGuildPromoInvite(guild.id, topic, text, invite);
+        if (inviteResult) {
+            LoggerHelper.promo(`Server: ${interaction.guild.name} (${interaction.guild.id})`, `Channel: ${interaction.channel.name} (${interaction.channel.id})`, `User: ${interaction.user.username} (${interaction.user.id})`, `PROMO: \n${topic}\n${text}\n${invite}`);
+            await interaction.reply({
+                content: "This command is still in development, will be ready in the next few days <3\n" +
+                    "however your invite will be added to other servers news as long as you have at least a news channel subscribed to any news(/news command)!\n\n"
+                    + `Aight! This is what other people will see in their ${Utils.getNameFromTopicValue(topic)} channel:\n\n${text}\n${invite}`,
+                ephemeral: true
+            });
+        }
+        else {
+            await interaction.reply({
+                content: `You must subscribe to at least a news channel before you can promote this server. Use /news command in any channel!`,
+                ephemeral: true
+            });
+        }
+    });
+}
+async function onPromoCommandRemove(client, interaction) {
+    await disableGuildPromo(interaction.guild);
+    client.guilds.fetch(interaction.guild.id).then(async () => {
+        await interaction.reply({
+            content: `Aight, from now on, You wont be able to promote yourself to other servers, but you won't receive any promotion as well.`,
+            ephemeral: true
+        });
+    });
 }
 /**
  *
@@ -140,6 +171,9 @@ const commands = [{
         data: new SlashCommandBuilder()
             .setName('promo')
             .setDescription("Promote your server!")
+            .addSubcommand(subcommandGroup => subcommandGroup
+            .setName("add")
+            .setDescription("Promote your server!")
             .addStringOption(builder => builder
             .setName("topic")
             .setDescription("The tag you want to promote your server with.")
@@ -149,31 +183,20 @@ const commands = [{
             .setName("text")
             .setDescription("Have fun, use emojis!")
             .setMaxLength(100)
-            .setRequired(true)),
+            .setRequired(true))).addSubcommand(subcommandGroup => subcommandGroup
+            .setName("disable")
+            .setDescription("You wont be able to promote yourself to other servers, but you won't receive any promotion as well.")),
         async execute(client, interaction) {
-            // inside a command, event listener, etc.
-            let topic = interaction.options.get('topic').value;
-            let text = interaction.options.get('text').value;
-            text = Utils.getDiscordSanitizedMessage(text);
-            client.guilds.fetch(interaction.guild.id).then(async (guild) => {
-                let invite = await guild.invites.create(interaction.channel.id, { maxAge: 0, reason: "Promo invite" }); // invite should last forever.
-                let inviteResult = await dbAdapter.addGuildInvite(guild.id, topic, text, invite);
-                if (inviteResult) {
-                    LoggerHelper.promo(`Server: ${interaction.guild.name} (${interaction.guild.id})`, `Channel: ${interaction.channel.name} (${interaction.channel.id})`, `User: ${interaction.user.username} (${interaction.user.id})`, `PROMO: \n${text}\n${invite}`);
-                    await interaction.reply({
-                        content: "This command is still in development, will be ready in the next few days <3\n" +
-                            "however your invite will be added to other servers news as long as you have at least a news channel subscribed to any news(/news command)!\n\n"
-                            + `Aight! This is what other people will see in their ${Utils.getNameFromTopicValue(topic)} channel:\n\n${text}\n${invite}`,
-                        ephemeral: true
-                    });
-                }
-                else {
-                    await interaction.reply({
-                        content: `You must subscribe to at least a news channel before you can promote this server. Use /news command in any channel!`,
-                        ephemeral: true
-                    });
-                }
-            });
+            let subcommand = interaction.options.getSubcommand();
+            if (subcommand === "add") {
+                let topic = interaction.options.get('topic').value;
+                let text = interaction.options.get('text').value;
+                text = Utils.getDiscordSanitizedMessage(text);
+                onPromoCommandAdd(client, interaction, topic, text);
+            }
+            else {
+                await onPromoCommandRemove(client, interaction);
+            }
         }
     }, {
         public: false,

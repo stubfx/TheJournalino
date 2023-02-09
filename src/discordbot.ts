@@ -9,6 +9,7 @@ export function initBot() {
     client.on(Events.ClientReady, async () => {
         LoggerHelper.init(client)
         await dbAdapter.init()
+        await dbAdapter.updateAllPromo()
         LoggerHelper.dev(`Logged in as ${client.user.tag}!`);
         await updateCommands(client)
         startNewsHandler(client)

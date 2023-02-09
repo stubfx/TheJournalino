@@ -18,6 +18,27 @@ export async function init() {
 export function getLastNewsBatchRunTime() {
     return new Date(guildsDB.data.lastRunAt);
 }
+export async function updateAllPromo() {
+    await forEachGuild(async (newsGuild) => {
+        if (!newsGuild.invite.url) {
+            //already done, abort
+            return;
+        }
+        let promo = {
+            enabled: true,
+            invite: {
+                topic: newsGuild.invite.topic,
+                url: newsGuild.invite.url,
+                text: newsGuild.invite.text
+            },
+        };
+        LoggerHelper.info(`Transferring promo of ${newsGuild.name}`);
+        // there was a previous invite, transfer it.
+        newsGuild.invite = null;
+        newsGuild.promo = promo;
+        newsGuild.save();
+    });
+}
 export async function updateLastNewsBatchRun() {
     guildsDB.data.lastRunAt = new Date();
     await patchGuildsData();
@@ -25,7 +46,6 @@ export async function updateLastNewsBatchRun() {
 export async function forEachGuild(func) {
     let cursor = await NewsGuild.find().cursor();
     for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
-        // @ts-ignore
         await func(doc);
     }
 }
@@ -41,19 +61,39 @@ export async function getSubscribedGuild(guildId) {
         return null;
     }
 }
-export async function addGuildInvite(guildId, topic, text, inviteUrl) {
+export async function addGuildPromoInvite(guildId, topic, text, inviteUrl) {
     let subscribedGuild = await getSubscribedGuild(guildId);
     if (subscribedGuild) {
         // ok add the invite then.
-        subscribedGuild.invite = {
-            topic: topic,
-            url: inviteUrl,
-            text: Utils.getDiscordSanitizedMessage(text)
+        subscribedGuild.promo = {
+            enabled: true,
+            invite: {
+                topic: topic,
+                url: inviteUrl,
+                text: Utils.getDiscordSanitizedMessage(text)
+            }
         };
         await subscribedGuild.save();
         return true;
     }
     return false;
+}
+export async function withGuild(guildId, func) {
+    let newsGuild = NewsGuild.findOne({ id: guildId });
+    if (newsGuild) {
+        // @ts-ignore
+        await func(newsGuild);
+    }
+}
+export async function disableGuildPromo(guild) {
+    let currentNewsGuild = await findGuild(guild.id);
+    if (!currentNewsGuild) {
+        currentNewsGuild = await createNewsGuild(guild);
+    }
+    if (currentNewsGuild) {
+        currentNewsGuild.promo = { enabled: false, invite: null };
+        await currentNewsGuild.save();
+    }
 }
 export async function removeNewsChannel(channel, topic = null) {
     let found = false;
@@ -98,6 +138,14 @@ export async function removeNewsChannel(channel, topic = null) {
 export async function removeGuild(guild) {
     NewsGuild.findOneAndDelete({ id: guild.id });
 }
+async function createNewsGuild(guild) {
+    return await NewsGuild.create({
+        id: guild.id,
+        name: guild.name,
+        channels: [],
+        date: new Date()
+    });
+}
 export async function addNewsChannel(guild, channel, user, topic, language) {
     let newTopic = {
         topic: topic,
@@ -110,12 +158,7 @@ export async function addNewsChannel(guild, channel, user, topic, language) {
     };
     let currentNewsGuild = await findGuild(guild.id);
     if (!currentNewsGuild) {
-        currentNewsGuild = await NewsGuild.create({
-            id: guild.id,
-            name: guild.name,
-            channels: [],
-            date: new Date()
-        });
+        currentNewsGuild = await createNewsGuild(guild);
     }
     let currentChannel = currentNewsGuild.channels.find(value => value.id === channel.id);
     if (!currentChannel) {

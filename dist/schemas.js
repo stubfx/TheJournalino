@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 export const NewsGuildSchema = new mongoose.Schema({
     id: String,
     name: String,
+    promo: {
+        enabled: { type: Boolean, default: true },
+        invite: {
+            topic: String,
+            url: String,
+            text: String
+        },
+    },
     invite: {
         topic: String,
         url: String,
