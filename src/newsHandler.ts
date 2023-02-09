@@ -27,10 +27,10 @@ function getGoogleNewsFeedUrl(newsData) {
 export async function findMetaEmbeds(newsData, rawGoogleArticle) {
     return new Promise(async resolve => {
         // gets the link from the Google article
-        let url = rawGoogleArticle.description.match(/(?<=href=['"])[^'"]*/g)[0]
-        LoggerHelper.dev(`Fetching ${url}`)
+        let url = new URL(rawGoogleArticle.description.match(/(?<=href=['"])[^'"]*/g)[0])
+        LoggerHelper.dev(`Fetching ${url.href}`)
         try {
-            // let articleMetadata = await scrapeThis(url);
+            // let articleMetadata = await scrapeThis(url.href);
             // articleMetadata.author = rawGoogleArticle.source['$t']
             // resolve(articleMetadata)
             let response = await Utils.fetchWithTimeout(url)
@@ -39,18 +39,19 @@ export async function findMetaEmbeds(newsData, rawGoogleArticle) {
             let title = $('meta[property="og:title"]').attr('content')
             let description = $('meta[property="og:description"]').attr('content')
             let imageLink = $('meta[property="og:image"]').attr('content')
-            if (title === "Google News") {
+            if (Utils.isGoogleUrl(url)) {
                 // look for the specific article pls.
                 let googleNewsArticleMetaEmbeds = await findGoogleNewsArticleMetaEmbeds(url, newsData, $);
                 if (googleNewsArticleMetaEmbeds) {
                     // found the article <3
                     // for legal reasons, im afraid this needs to remain the Google's news url.
-                    googleNewsArticleMetaEmbeds.url = url
+                    googleNewsArticleMetaEmbeds.url = url.href
                     googleNewsArticleMetaEmbeds.author = rawGoogleArticle.source['$t']
                     resolve(googleNewsArticleMetaEmbeds)
+                    return
                 }
             }
-            resolve(new ArticleMetadata(newsData, url, title, description, imageLink, rawGoogleArticle.source['$t']))
+            resolve(new ArticleMetadata(newsData, url.href, response.url, title, description, imageLink, rawGoogleArticle.source['$t']))
         } catch (e) {
             LoggerHelper.consoleError(`Fetching ${url}`)
             LoggerHelper.consoleError(e);
@@ -59,7 +60,7 @@ export async function findMetaEmbeds(newsData, rawGoogleArticle) {
     })
 }
 
-export async function findGoogleNewsArticleMetaEmbeds(googleNewsUrl: String, newsData: NewsData, googleNewsScrapedPage: cheerio.CheerioAPI): Promise<ArticleMetadata | null> {
+export async function findGoogleNewsArticleMetaEmbeds(googleNewsUrl: URL, newsData: NewsData, googleNewsScrapedPage: cheerio.CheerioAPI): Promise<ArticleMetadata | null> {
     try {
         // gets the link from the Google article
         let linkSelector = googleNewsScrapedPage("a");
@@ -75,7 +76,7 @@ export async function findGoogleNewsArticleMetaEmbeds(googleNewsUrl: String, new
                 let title = $('meta[property="og:title"]').attr('content')
                 let description = $('meta[property="og:description"]').attr('content')
                 let imageLink = $('meta[property="og:image"]').attr('content')
-                return new ArticleMetadata(newsData, googleNewsUrl, title, description, imageLink, null)
+                return new ArticleMetadata(newsData, googleNewsUrl, response.url,title, description, imageLink, null)
             }
         }
         return null
@@ -279,15 +280,8 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
                 {name: 'Topic', value: Utils.getNameFromTopicValue(newsData.topic), inline: true},
             )
         }
-
-        let imageLink = articleMeta.imageLink;
-        if (imageLink) {
-            msgEmbed.setImage(imageLink)
-        } else {
-            // in this case just make it pretty!
-            // msgEmbed.setImage("https://i.imgur.com/AfFp7pu.png")
-        }
-
+        // image should always exist.
+        msgEmbed.setImage(articleMeta.imageLink);
         if (Math.random() < 0.3) {
             msgEmbed.addFields(getCTAField())
         }
@@ -307,10 +301,10 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
                     `Channel: ${newsData.channelName}(${newsData.channelId})`)
                 // log the error details, only if is not a common one.
                 if (!skipError.includes(reason.code.toString())) {
-                    LoggerHelper.error(feedUrl, articleMeta.url, imageLink, reason)
+                    LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
                 }
             } else {
-                LoggerHelper.error(feedUrl, articleMeta.url, imageLink, reason)
+                LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
             }
         });
     } catch (e) {

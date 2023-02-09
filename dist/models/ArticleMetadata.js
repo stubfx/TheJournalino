@@ -1,5 +1,11 @@
 import * as Utils from "../utils.js";
 export class ArticleMetadata {
+    get resolvedUrl() {
+        return this._resolvedUrl;
+    }
+    set resolvedUrl(value) {
+        this._resolvedUrl = value;
+    }
     get author() {
         return this._author;
     }
@@ -7,7 +13,11 @@ export class ArticleMetadata {
         this._author = value;
     }
     get imageLink() {
-        return Utils.getCorrectHttpsUrl(this._imageLink) || Utils.getTimageFromTopicValue(this.newsData.topic);
+        let imageLink = Utils.getCorrectHttpsUrl(this._imageLink);
+        if (!imageLink || this.isGoogleNews()) {
+            imageLink = Utils.getTimageFromTopicValue(this.newsData.topic);
+        }
+        return imageLink;
     }
     set imageLink(value) {
         this._imageLink = value;
@@ -32,17 +42,22 @@ export class ArticleMetadata {
     }
     newsData;
     _url;
+    _resolvedUrl;
     _title;
     _description;
     _imageLink;
     _author;
-    constructor(newsData, url, title, description, imageLink, author) {
+    constructor(newsData, url, resolvedUrl, title, description, imageLink, author) {
         this.newsData = newsData;
-        this._url = Utils.getCorrectHttpsUrl(url);
-        this._title = Utils.checkStringLength(title, 256);
-        this._description = Utils.checkStringLength(description, 4096);
-        this._imageLink = Utils.getCorrectHttpsUrl(imageLink);
+        this._url = url;
+        this._resolvedUrl = resolvedUrl;
+        this._title = title;
+        this._description = description;
+        this._imageLink = imageLink;
         this._author = author;
+    }
+    isGoogleNews() {
+        return Utils.isGoogleUrl(this.resolvedUrl);
     }
     isComplete() {
         // check if urls are fine! that's important.

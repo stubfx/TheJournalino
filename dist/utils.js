@@ -20,6 +20,11 @@ export function getCorrectHttpsUrl(string) {
     }
     return null;
 }
+export function isGoogleUrl(url) {
+    // throw exception if not valid, for obvious reasons.
+    let tmpUrl = new URL(url);
+    return tmpUrl.host.includes("news.google.com");
+}
 export function checkStringLength(string, max, min = 1) {
     // Primitives are a different kind of type than objects created from within Javascript,
     // therefore the check below will always be false.
