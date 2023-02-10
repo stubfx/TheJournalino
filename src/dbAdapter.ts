@@ -150,7 +150,9 @@ export async function removeNewsChannel(channel, topic = null) {
 }
 
 export async function removeGuild(guild) {
-    NewsGuild.findOneAndDelete({id: guild.id})
+    // does not work without await ?
+    // mongoose, what have you done?
+    await NewsGuild.findOneAndDelete({id: guild.id})
 }
 
 async function createNewsGuild(guild) {
