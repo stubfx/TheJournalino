@@ -10,14 +10,10 @@ export const NewsGuildSchema = new mongoose.Schema({
             text: String
         },
     },
-    invite: {
-        topic: String,
-        url: String,
-        text: String
-    },
     channels: [{
             id: String,
             name: String,
+            error: Boolean,
             topics: [
                 {
                     topic: String,

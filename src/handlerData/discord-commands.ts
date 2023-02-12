@@ -1,18 +1,12 @@
-import {
-    ChatInputCommandInteraction,
-    Client,
-    PermissionFlagsBits,
-    PermissionsBitField,
-    SlashCommandBuilder,
-} from "discord.js";
+import {ChatInputCommandInteraction, Client, PermissionsBitField, SlashCommandBuilder,} from "discord.js";
 
 import locales from '../datamodels/locales.js'
 import * as dbAdapter from "../dbAdapter.js";
+import {disableGuildPromo} from "../dbAdapter.js";
 import topicsData from "../datamodels/topicsData.js";
 import * as LoggerHelper from "../loggerHelper.js";
 import * as Utils from "../utils.js";
 import {broadcastMessage} from "../newsHandler.js";
-import {disableGuildPromo} from "../dbAdapter.js";
 
 function getTopicDataAsCommandChoices() {
     let tmp = []
@@ -35,9 +29,7 @@ async function addNewsChannelInteraction(interaction) {
     let topic = interaction.options.get('topic');
     // check if the bot has permissions to write in the channel.
     let me = interaction.guild.members.me;
-    let viewChannelPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.ViewChannel);
-    let sendPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.SendMessages);
-    if (viewChannelPermission && sendPermission) {
+    if (Utils.sendMessagesPermissionsInFetchedChannel(me, interaction.channel)) {
         // add this channel to the news queue!
         await dbAdapter.addNewsChannel(interaction.guild,
             interaction.channel,

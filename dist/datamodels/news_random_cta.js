@@ -5,8 +5,8 @@ import { rndArrayItem } from "../utils.js";
  */
 const CTAFields = [
     {
-        name: 'Vote me on Top.gg! <3',
-        value: 'https://top.gg/bot/1063214678874009701'
+        name: 'Vote me on Top.gg!',
+        value: 'https://top.gg/bot/1063214678874009701/vote'
     }
 ];
 export function getCTAField() {

@@ -76,7 +76,7 @@ export async function findGoogleNewsArticleMetaEmbeds(googleNewsUrl: URL, newsDa
                 let title = $('meta[property="og:title"]').attr('content')
                 let description = $('meta[property="og:description"]').attr('content')
                 let imageLink = $('meta[property="og:image"]').attr('content')
-                return new ArticleMetadata(newsData, googleNewsUrl, response.url,title, description, imageLink, null)
+                return new ArticleMetadata(newsData, googleNewsUrl, response.url, title, description, imageLink, null)
             }
         }
         return null
@@ -239,7 +239,7 @@ export function startNewsHandler(discordClient) {
  * @param {NewsData}newsData
  * @param {any}articleMeta
  */
-function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
+async function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
     try {
         LoggerHelper.dev(`Sending article "${articleMeta.title}"`)
         if (process.env.dev) {
@@ -285,28 +285,39 @@ function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
         if (Math.random() < 0.3) {
             msgEmbed.addFields(getCTAField())
         }
-        client.channels.fetch(newsData.channelId)
-            .then(async channel => {
-                await channel.send({embeds: [msgEmbed]});
-            }).catch(reason => {
-            const skipError = [
-                // DiscordAPIError[50013]: Missing Permissions
-                "50013",
-                // DiscordAPIError[50001]: Missing Access
-                "50001"
-            ]
-            if (reason instanceof DiscordAPIError) {
-                LoggerHelper.error(reason,
-                    `Guild: ${newsData.guildName}(${newsData.guildId})`,
-                    `Channel: ${newsData.channelName}(${newsData.channelId})`)
-                // log the error details, only if is not a common one.
-                if (!skipError.includes(reason.code.toString())) {
-                    LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
+        let fetchedChannel = null
+        if (!await dbAdapter.isChannelBroken(newsData.guildId, newsData.channelId)) {
+            client.channels.fetch(newsData.channelId)
+                .then(async channel => {
+                    fetchedChannel = channel
+                    await channel.send({embeds: [msgEmbed]});
+                }).catch(async reason => {
+                try {
+                    const skipError = [
+                        // DiscordAPIError[50013]: Missing Permissions
+                        "50013",
+                        // DiscordAPIError[50001]: Missing Access
+                        "50001"
+                    ]
+                    if (reason instanceof DiscordAPIError) {
+                        LoggerHelper.error(reason,
+                            `Guild: ${newsData.guildName}(${newsData.guildId})`,
+                            `Channel: ${newsData.channelName}(${newsData.channelId})`)
+                        // log the error details, only if is not a common one.
+                        if (!skipError.includes(reason.code.toString())) {
+                            LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
+                        }
+                    } else {
+                        LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
+                    }
+                    // no permissions here, mark channel for deletion.
+                    LoggerHelper.error(`Marking channel (${fetchedChannel.id}) ${fetchedChannel.name} as broken.`)
+                    await dbAdapter.deleteChannelBrokenChannelProcess(fetchedChannel)
+                } catch (e) {
+                    LoggerHelper.error(`Error handling send channel error? wtf?`, e)
                 }
-            } else {
-                LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason)
-            }
-        });
+            });
+        }
     } catch (e) {
         // just to make sure.
         LoggerHelper.error(`ChannelID: ${newsData.channelId}`, feedUrl, e)

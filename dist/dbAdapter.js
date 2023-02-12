@@ -5,6 +5,27 @@ import { findMetaEmbeds } from "./newsHandler.js";
 import * as LoggerHelper from "./loggerHelper.js";
 import mongoose from "mongoose";
 import { NewsGuild } from "./schemas.js";
+export async function deleteChannelBrokenChannelProcess(channel) {
+    // will be improved later on.
+    let currentNewsGuild = await findGuild(channel.guild.id);
+    if (currentNewsGuild) {
+        // look for the given channel
+        let currentChannel = currentNewsGuild.channels.find(ch => ch.id === channel.id);
+        currentChannel.error = true;
+        // done. just save it.
+        currentNewsGuild.save();
+    }
+}
+export async function isChannelBroken(guildId, channelId) {
+    // will be improved later on.
+    let currentNewsGuild = await findGuild(guildId);
+    if (currentNewsGuild) {
+        // look for the given channel
+        let currentChannel = currentNewsGuild.channels.find(ch => ch.id === channelId);
+        return currentChannel.error;
+    }
+    return false;
+}
 const DEFAULT_TOPIC = "top";
 let mongooseConnection = null;
 export async function init() {
@@ -17,27 +38,6 @@ export async function init() {
  */
 export function getLastNewsBatchRunTime() {
     return new Date(guildsDB.data.lastRunAt);
-}
-export async function updateAllPromo() {
-    await forEachGuild(async (newsGuild) => {
-        if (!newsGuild.invite.url) {
-            //already done, abort
-            return;
-        }
-        let promo = {
-            enabled: true,
-            invite: {
-                topic: newsGuild.invite.topic,
-                url: newsGuild.invite.url,
-                text: newsGuild.invite.text
-            },
-        };
-        LoggerHelper.info(`Transferring promo of ${newsGuild.name}`);
-        // there was a previous invite, transfer it.
-        newsGuild.invite = null;
-        newsGuild.promo = promo;
-        newsGuild.save();
-    });
 }
 export async function updateLastNewsBatchRun() {
     guildsDB.data.lastRunAt = new Date();
@@ -171,12 +171,15 @@ export async function addNewsChannel(guild, channel, user, topic, language) {
         currentNewsGuild.channels.push({
             id: channel.id,
             name: channel.name,
+            error: false,
             topics: [newTopic]
         });
     }
     else {
         // in this case the channel list already exists.
         currentChannel.name = channel.name; // make sure to keep this up to date.
+        // try to remove the error for now.
+        currentChannel.error = false;
         // does the topic already exist in the channel tho?
         // if it does, no need to replace it.
         let found = currentChannel.topics.find(value => value.topic === topic && value.language === language);

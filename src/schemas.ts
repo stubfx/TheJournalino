@@ -13,6 +13,7 @@ export interface NewsGuildTopicChannel {
 export interface NewsGuildSchemaChannel {
     id: String,
     name: String,
+    error: Boolean,
     topics: Array<NewsGuildTopicChannel>
 }
 
@@ -27,11 +28,6 @@ export interface NewsGuildSchemaInterface {
             text: String
         },
     },
-    invite: {
-        topic: String,
-        url: String,
-        text: String
-    }
     channels: Array<NewsGuildSchemaChannel>,
     date: Date
 }
@@ -51,14 +47,10 @@ export const NewsGuildSchema = new mongoose.Schema<NewsGuildModelInterface>({
             text: String
         },
     },
-    invite: {
-        topic: String,
-        url: String,
-        text: String
-    },
     channels: [{
         id: String,
         name: String,
+        error: Boolean,
         topics: [
             {
                 topic: String,

@@ -1,6 +1,7 @@
 import topicsData from "./datamodels/topicsData.js";
 import fetch from "node-fetch";
 import locales from './datamodels/locales.js'
+import {GuildChannelResolvable, GuildMember, PermissionFlagsBits} from "discord.js";
 
 export function rndArrayItem(arr) {
     return arr[Math.floor(Math.random() * arr.length)]
@@ -61,6 +62,12 @@ export function getNameFromLanguageValue(languageValue) {
         return find.name
     }
     return `ERROR(${languageValue})`
+}
+
+export function sendMessagesPermissionsInFetchedChannel(guildMember: GuildMember, channel: GuildChannelResolvable): Boolean {
+    let viewChannelPermission = guildMember.permissionsIn(channel).has(PermissionFlagsBits.ViewChannel);
+    let sendPermission = guildMember.permissionsIn(channel).has(PermissionFlagsBits.SendMessages);
+    return viewChannelPermission && sendPermission
 }
 
 export async function fetchWithTimeout(resource, options = {timeout: 5000}) {

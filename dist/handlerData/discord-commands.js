@@ -1,4 +1,4 @@
-import { PermissionFlagsBits, PermissionsBitField, SlashCommandBuilder, } from "discord.js";
+import { PermissionsBitField, SlashCommandBuilder, } from "discord.js";
 import locales from '../datamodels/locales.js';
 import * as dbAdapter from "../dbAdapter.js";
 import topicsData from "../datamodels/topicsData.js";
@@ -25,9 +25,7 @@ async function addNewsChannelInteraction(interaction) {
     let topic = interaction.options.get('topic');
     // check if the bot has permissions to write in the channel.
     let me = interaction.guild.members.me;
-    let viewChannelPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.ViewChannel);
-    let sendPermission = me.permissionsIn(interaction.channel).has(PermissionFlagsBits.SendMessages);
-    if (viewChannelPermission && sendPermission) {
+    if (Utils.sendMessagesPermissionsInFetchedChannel(me, interaction.channel)) {
         // add this channel to the news queue!
         await dbAdapter.addNewsChannel(interaction.guild, interaction.channel, interaction.user, topic.value, language.value);
         await interaction.reply({
