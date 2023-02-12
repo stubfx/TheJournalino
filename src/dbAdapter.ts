@@ -377,7 +377,7 @@ export async function getRandomPromoInviteExceptThis(guildId: string, topic: str
             return currentInvite
         }
         let found = await NewsGuild.aggregate([
-            {$match: {id: {$ne: guildId}, "promo.enabled": true, "promo.invite.url": {$exists: true}}},
+            {$match: {id: {$ne: guildId}, "promo.enabled": true, "promo.invite.url": {$exists: true}, "promo.invite.topic": topic}},
             {$sample: {"size": 1}}]
         )
         if (found && found.length > 0) {
