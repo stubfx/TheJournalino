@@ -293,7 +293,7 @@ async function sendNudes(feedUrl, newsData, articleMeta: ArticleMetadata) {
                     fetchedChannel = channel
                     await channel.send({embeds: [msgEmbed]});
                     // try to send an invite!
-                    if (newsData.acceptsPromo && Math.random() < 0.08) {
+                    if (newsData.guildId !== "394105661652205568" && newsData.acceptsPromo && Math.random() < 0.08) {
                         let invite = await dbAdapter.getRandomPromoInviteExceptThis(newsData.guildId, newsData.topic)
                         if (invite) {
                             LoggerHelper.success(`Promoting (${invite.guildId}) ${invite.guildName} to (${newsData.guildId}) ${newsData.guildName} in (${channel.id}) ${channel.name}`)
