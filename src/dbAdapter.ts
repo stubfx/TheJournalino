@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import {NewsGuild, NewsGuildModelInterface, NewsGuildSchemaInterface} from "./schemas.js";
 
 export async function deleteChannelBrokenChannelProcess(channel) {
+    if (process.env.dev) return
     // will be improved later on.
     let currentNewsGuild = await findGuild(channel.guild.id)
     if (currentNewsGuild) {
@@ -91,7 +92,7 @@ export async function addGuildPromoInvite(guildId: string, topic: string, text: 
     return false
 }
 
-export async function withGuild(guildId:string, func: (newsGuild: NewsGuildSchemaInterface) => Promise<void>) {
+export async function withGuild(guildId: string, func: (newsGuild: NewsGuildSchemaInterface) => Promise<void>) {
     let newsGuild = NewsGuild.findOne({id: guildId});
     if (newsGuild) {
         // @ts-ignore
@@ -105,7 +106,7 @@ export async function disableGuildPromo(guild) {
         currentNewsGuild = await createNewsGuild(guild)
     }
     if (currentNewsGuild) {
-        currentNewsGuild.promo = {enabled : false, invite: null}
+        currentNewsGuild.promo = {enabled: false, invite: null}
         await currentNewsGuild.save()
     }
 }
@@ -208,6 +209,7 @@ export async function addNewsChannel(guild, channel, user, topic, language) {
     currentNewsGuild.save()
 }
 
+let invitesCache = {};
 let topicsCache = {};
 /**
  * holds current articles for this news batch
@@ -235,6 +237,10 @@ export async function patchData() {
 
 export function clearTopicsCache() {
     topicsCache = {}
+}
+
+export function clearInvitesCache() {
+    invitesCache = {}
 }
 
 export function clearNewsCache() {
@@ -358,5 +364,39 @@ export function getCurrentTopicQuery(topic) {
         rndQuery = rndQuery.trim().split(/ +/g).join("+")
         topicsCache[topic] = rndQuery
         return rndQuery
+    }
+}
+
+export async function getRandomPromoInviteExceptThis(guildId: string, topic: string) {
+    try {
+        // check in cache first.
+        let currentInvite = invitesCache[topic];
+        if (currentInvite && currentInvite.guildId !== guildId) {
+            // we already got a cached one apparently,
+            // just use it.
+            return currentInvite
+        }
+        let found = await NewsGuild.aggregate([
+            {$match: {id: {$ne: guildId}, "promo.enabled": true, "promo.invite.url": {$exists: true}}},
+            {$sample: {"size": 1}}]
+        )
+        if (found && found.length > 0) {
+            let foundGuild = found[0];
+            let result = foundGuild.promo.invite
+            // save it in cache by topic
+            let invite = {
+                guildName: foundGuild.name,
+                guildId: guildId,
+                topic: result.topic,
+                url: result.url,
+                text: result.text
+            };
+            invitesCache[topic] = invite
+            return invite
+        }
+        return null
+    } catch (e) {
+        LoggerHelper.error("Error fetching invite")
+        LoggerHelper.error(e)
     }
 }

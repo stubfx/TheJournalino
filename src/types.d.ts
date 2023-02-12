@@ -14,12 +14,13 @@ declare type User = {
 }
 
 declare type NewsData = {
- topic : string
- guildId : string
- guildName : string
- channelId : string
- channelName : string
- jobCreator : User
- language : string
- hourInterval : number
+    topic: string
+    guildId: string
+    guildName: string
+    channelId: string
+    channelName: string
+    jobCreator: User
+    language: string
+    hourInterval: number,
+    acceptsPromo: boolean
 }

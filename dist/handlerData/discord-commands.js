@@ -1,11 +1,11 @@
 import { PermissionsBitField, SlashCommandBuilder, } from "discord.js";
 import locales from '../datamodels/locales.js';
 import * as dbAdapter from "../dbAdapter.js";
+import { disableGuildPromo } from "../dbAdapter.js";
 import topicsData from "../datamodels/topicsData.js";
 import * as LoggerHelper from "../loggerHelper.js";
 import * as Utils from "../utils.js";
 import { broadcastMessage } from "../newsHandler.js";
-import { disableGuildPromo } from "../dbAdapter.js";
 function getTopicDataAsCommandChoices() {
     let tmp = [];
     for (let topicsDataKey in topicsData) {
@@ -70,9 +70,8 @@ function onPromoCommandAdd(client, interaction, topic, text) {
         if (inviteResult) {
             LoggerHelper.promo(`Server: ${interaction.guild.name} (${interaction.guild.id})`, `Channel: ${interaction.channel.name} (${interaction.channel.id})`, `User: ${interaction.user.username} (${interaction.user.id})`, `PROMO: \n${topic}\n${text}\n${invite}`);
             await interaction.reply({
-                content: "This command is still in development, will be ready in the next few days <3\n" +
-                    "however your invite will be added to other servers news as long as you have at least a news channel subscribed to any news(/news command)!\n\n"
-                    + `Aight! This is what other people will see in their ${Utils.getNameFromTopicValue(topic)} channel:\n\n${text}\n${invite}`,
+                content: "Wanna boost up your chances to be promoted? vote me on Top.gg!\n https://top.gg/bot/1063214678874009701/vote\n"
+                    + `This is what other people will see in their ${Utils.getNameFromTopicValue(topic)} channel (top.gg embed wont be there <3):\n\n${text}\n${invite}`,
                 ephemeral: true
             });
         }

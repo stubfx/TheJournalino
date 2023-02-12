@@ -6,6 +6,8 @@ import * as LoggerHelper from "./loggerHelper.js";
 import mongoose from "mongoose";
 import { NewsGuild } from "./schemas.js";
 export async function deleteChannelBrokenChannelProcess(channel) {
+    if (process.env.dev)
+        return;
     // will be improved later on.
     let currentNewsGuild = await findGuild(channel.guild.id);
     if (currentNewsGuild) {
@@ -191,6 +193,7 @@ export async function addNewsChannel(guild, channel, user, topic, language) {
     }
     currentNewsGuild.save();
 }
+let invitesCache = {};
 let topicsCache = {};
 /**
  * holds current articles for this news batch
@@ -213,6 +216,9 @@ export async function patchData() {
 }
 export function clearTopicsCache() {
     topicsCache = {};
+}
+export function clearInvitesCache() {
+    invitesCache = {};
 }
 export function clearNewsCache() {
     newsDB.data.articles = {};
@@ -244,7 +250,7 @@ export async function getCurrentArticle(newsData, queryString) {
     if (!currentArticlesCache[queryString]) {
         // in this the article is not in the cache yet!
         // let's get it
-        LoggerHelper.dev(`Adding article in cache for - ${queryString}`);
+        LoggerHelper.dev(`Adding current article in cache for - ${queryString}`);
         currentArticlesCache[queryString] = await getCachedStackNewsSanitizedArticle(newsData, queryString);
     }
     // then just return it.
@@ -330,6 +336,40 @@ export function getCurrentTopicQuery(topic) {
         rndQuery = rndQuery.trim().split(/ +/g).join("+");
         topicsCache[topic] = rndQuery;
         return rndQuery;
+    }
+}
+export async function getRandomPromoInviteExceptThis(guildId, topic) {
+    try {
+        // check in cache first.
+        let currentInvite = invitesCache[topic];
+        if (currentInvite && currentInvite.guildId !== guildId) {
+            // we already got a cached one apparently,
+            // just use it.
+            return currentInvite;
+        }
+        let found = await NewsGuild.aggregate([
+            { $match: { id: { $ne: guildId }, "promo.enabled": true, "promo.invite.url": { $exists: true } } },
+            { $sample: { "size": 1 } }
+        ]);
+        if (found && found.length > 0) {
+            let foundGuild = found[0];
+            let result = foundGuild.promo.invite;
+            // save it in cache by topic
+            let invite = {
+                guildName: foundGuild.name,
+                guildId: guildId,
+                topic: result.topic,
+                url: result.url,
+                text: result.text
+            };
+            invitesCache[topic] = invite;
+            return invite;
+        }
+        return null;
+    }
+    catch (e) {
+        LoggerHelper.error("Error fetching invite");
+        LoggerHelper.error(e);
     }
 }
 //# sourceMappingURL=dbAdapter.js.map

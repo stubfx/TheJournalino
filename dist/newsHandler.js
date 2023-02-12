@@ -169,6 +169,7 @@ async function startNewsBatch() {
                         channelId: channel.id,
                         channelName: channel.name,
                         guildName: newsGuild.name,
+                        acceptsPromo: newsGuild.promo.enabled,
                         jobCreator: { id: currentTopic.user.id, name: currentTopic.user.name }
                     });
                 }
@@ -278,6 +279,14 @@ async function sendNudes(feedUrl, newsData, articleMeta) {
                 .then(async (channel) => {
                 fetchedChannel = channel;
                 await channel.send({ embeds: [msgEmbed] });
+                // try to send an invite!
+                if (newsData.acceptsPromo && Math.random() < 0.08) {
+                    let invite = await dbAdapter.getRandomPromoInviteExceptThis(newsData.guildId, newsData.topic);
+                    if (invite) {
+                        LoggerHelper.success(`Promoting (${invite.guildId}) ${invite.guildName} to (${newsData.guildId}) ${newsData.guildName} in (${channel.id}) ${channel.name}`);
+                        await channel.send(`---\n**(/promo)** Check out this server!\n\n\n${invite.text}\n${invite.url}`);
+                    }
+                }
             }).catch(async (reason) => {
                 try {
                     const skipError = [
@@ -292,13 +301,13 @@ async function sendNudes(feedUrl, newsData, articleMeta) {
                         if (!skipError.includes(reason.code.toString())) {
                             LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason);
                         }
+                        // no permissions here, mark channel for deletion.
+                        LoggerHelper.error(`Marking channel (${fetchedChannel.id}) ${fetchedChannel.name} as broken.`);
+                        await dbAdapter.deleteChannelBrokenChannelProcess(fetchedChannel);
                     }
                     else {
                         LoggerHelper.error(feedUrl, articleMeta.url, articleMeta.imageLink, reason);
                     }
-                    // no permissions here, mark channel for deletion.
-                    LoggerHelper.error(`Marking channel (${fetchedChannel.id}) ${fetchedChannel.name} as broken.`);
-                    await dbAdapter.deleteChannelBrokenChannelProcess(fetchedChannel);
                 }
                 catch (e) {
                     LoggerHelper.error(`Error handling send channel error? wtf?`, e);
