@@ -104,13 +104,13 @@ async function retrieveGoogleArticles(googleNewsFeedUrl) {
         if (!news) {
             // then im sry my little friend.
             dbAdapter.addExpensiveQuery(googleNewsFeedUrl);
-            LoggerHelper.error(`Adding ${googleNewsFeedUrl} to the expensive list`);
+            LoggerHelper.dev(`Adding ${googleNewsFeedUrl} to the expensive list`);
             return;
         }
         else if (news.length < 5) {
             // we still need to add this query to the expesive list
             dbAdapter.addExpensiveQuery(googleNewsFeedUrl);
-            LoggerHelper.error(`Adding ${googleNewsFeedUrl} to the expensive list`);
+            LoggerHelper.dev(`Adding ${googleNewsFeedUrl} to the expensive list`);
             // but in this case we have some results, why waste them?
             // return
         }
