@@ -18,7 +18,7 @@ let client = null
 function getGoogleNewsFeedUrl(newsData) {
     const prefix = "https://rss.thejournalino.com/?feed=google&p1=";
     // const postfix = '&hl=en-US&gl=US&ceid=US:en'
-    const postfix = `&p2=${newsData.language}`
+    const postfix = `&p2=${newsData.language}?apikey=${process.env.news_api_apikey}`
     let feedUrl = prefix + dbAdapter.getCurrentTopicQuery(newsData.topic) + postfix;
     LoggerHelper.dev(`GENERATED RSS FEED: ${feedUrl}`);
     return feedUrl
