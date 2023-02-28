@@ -1,7 +1,6 @@
 import { PermissionsBitField, SlashCommandBuilder, } from "discord.js";
 import locales from '../datamodels/locales.js';
 import * as dbAdapter from "../dbAdapter.js";
-import { disableGuildPromo } from "../dbAdapter.js";
 import topicsData from "../datamodels/topicsData.js";
 import * as LoggerHelper from "../loggerHelper.js";
 import * as Utils from "../utils.js";
@@ -62,35 +61,6 @@ async function removeNewsChannelInteraction(interaction) {
     else {
         await interaction.reply({ content: errorContent, ephemeral: true });
     }
-}
-function onPromoCommandAdd(client, interaction, topic, text) {
-    client.guilds.fetch(interaction.guild.id).then(async (guild) => {
-        let invite = await guild.invites.create(interaction.channel.id, { maxAge: 0, reason: "Promo invite" }); // invite should last forever.
-        let inviteResult = await dbAdapter.addGuildPromoInvite(guild.id, topic, text, invite);
-        if (inviteResult) {
-            LoggerHelper.promo(`Server: ${interaction.guild.name} (${interaction.guild.id})`, `Channel: ${interaction.channel.name} (${interaction.channel.id})`, `User: ${interaction.user.username} (${interaction.user.id})`, `PROMO: \n${topic}\n${text}\n${invite}`);
-            await interaction.reply({
-                content: "Wanna boost up your chances to be promoted? vote me on Top.gg!\n https://top.gg/bot/1063214678874009701/vote\n"
-                    + `This is what other people will see in their ${Utils.getNameFromTopicValue(topic)} channel (top.gg embed wont be there <3):\n\n${text}\n${invite}`,
-                ephemeral: true
-            });
-        }
-        else {
-            await interaction.reply({
-                content: `You must subscribe to at least a news channel before you can promote this server. Use /news command in any channel!`,
-                ephemeral: true
-            });
-        }
-    });
-}
-async function onPromoCommandRemove(client, interaction) {
-    await disableGuildPromo(interaction.guild);
-    client.guilds.fetch(interaction.guild.id).then(async () => {
-        await interaction.reply({
-            content: `Aight, from now on, You wont be able to promote yourself to other servers, but you won't receive any promotion as well.`,
-            ephemeral: true
-        });
-    });
 }
 /**
  *
@@ -163,39 +133,8 @@ const commands = [{
             LoggerHelper.suggestion(`Server: ${interaction.guild.name} (${interaction.guild.id})`, `Channel: ${interaction.channel.name} (${interaction.channel.id})`, `User: ${interaction.user.username} (${interaction.user.id})`, `Suggestion: ${interaction.options.get('suggestion').value}`);
             await interaction.reply({ content: "Got it, thanks!", ephemeral: true });
         }
-    }, {
-        public: true,
-        data: new SlashCommandBuilder()
-            .setName('promo')
-            .setDescription("Promote your server!")
-            .addSubcommand(subcommandGroup => subcommandGroup
-            .setName("add")
-            .setDescription("Promote your server!")
-            .addStringOption(builder => builder
-            .setName("topic")
-            .setDescription("The tag you want to promote your server with.")
-            .addChoices(...getTopicDataAsCommandChoices())
-            .setMaxLength(256)
-            .setRequired(true)).addStringOption(builder => builder
-            .setName("text")
-            .setDescription("Have fun, use emojis!")
-            .setMaxLength(100)
-            .setRequired(true))).addSubcommand(subcommandGroup => subcommandGroup
-            .setName("disable")
-            .setDescription("You wont be able to promote yourself to other servers, but you won't receive any promotion as well.")),
-        async execute(client, interaction) {
-            let subcommand = interaction.options.getSubcommand();
-            if (subcommand === "add") {
-                let topic = interaction.options.get('topic').value;
-                let text = interaction.options.get('text').value;
-                text = Utils.getDiscordSanitizedMessage(text);
-                onPromoCommandAdd(client, interaction, topic, text);
-            }
-            else {
-                await onPromoCommandRemove(client, interaction);
-            }
-        }
-    }, {
+    },
+    {
         public: false,
         data: new SlashCommandBuilder()
             .setName('guild')
