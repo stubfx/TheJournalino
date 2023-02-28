@@ -5,8 +5,8 @@ news_api_apikey=fsdjkdfssdfsdffnw980sdfa9u8kjrerer9jnw980seredfrdfa9u8kj9jnw980e
 
 #db
 db_guilds_conn_string="mongodb+srv://thejournalino:asdfsadfwerwerwerwer@cluster0.asdfsadfwwerweewr.mongodb.net/?retryWrites=true&w=majority"
-db_guilds_name=news
 
+db_guilds_name=news
 discord_application_id=1234567891234567891
 discord_admin_guild=1234567891234567891
 discord_log_channel_id=1234567891234567891
