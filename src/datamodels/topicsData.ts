@@ -28,6 +28,8 @@ export default {
             "Overwatch 2",
             "Rainbow six siege game",
             "Valve Steam games",
+            "SQUAD steam videogame",
+            "SQUAD videogame",
             "Warzone 2",
             "Videogames",
             "Counter strike",
